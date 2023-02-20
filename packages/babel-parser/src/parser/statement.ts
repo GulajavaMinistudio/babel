@@ -293,7 +293,7 @@ export default abstract class StatementParser extends ExpressionParser {
     if (isIdentifierStart(ch)) {
       keywordRelationalOperator.lastIndex = pos;
       if (keywordRelationalOperator.test(this.input)) {
-        // We have seen `in` or `instanceof` so far, now check if the identfier
+        // We have seen `in` or `instanceof` so far, now check if the identifier
         // ends here
         const endCh = this.codePointAtPos(keywordRelationalOperator.lastIndex);
         if (!isIdentifierChar(endCh) && endCh !== charCodes.backslash) {
@@ -354,6 +354,8 @@ export default abstract class StatementParser extends ExpressionParser {
       ParseStatementFlag.AllowImportExport |
         ParseStatementFlag.AllowDeclaration |
         ParseStatementFlag.AllowFunctionDeclaration |
+        // This function is actually also used to parse StatementItems,
+        // which with Annex B enabled allows labeled functions.
         ParseStatementFlag.AllowLabeledFunction,
     );
   }
@@ -363,18 +365,24 @@ export default abstract class StatementParser extends ExpressionParser {
     return this.parseStatementLike(
       ParseStatementFlag.AllowDeclaration |
         ParseStatementFlag.AllowFunctionDeclaration |
-        ParseStatementFlag.AllowLabeledFunction,
+        (!this.options.annexB || this.state.strict
+          ? 0
+          : ParseStatementFlag.AllowLabeledFunction),
     );
   }
 
-  parseStatementOrFunctionDeclaration(
+  parseStatementOrSloppyAnnexBFunctionDeclaration(
     this: Parser,
-    disallowLabeledFunction: boolean,
+    allowLabeledFunction: boolean = false,
   ) {
-    return this.parseStatementLike(
-      ParseStatementFlag.AllowFunctionDeclaration |
-        (disallowLabeledFunction ? 0 : ParseStatementFlag.AllowLabeledFunction),
-    );
+    let flags: ParseStatementFlag = ParseStatementFlag.StatementOnly;
+    if (this.options.annexB && !this.state.strict) {
+      flags |= ParseStatementFlag.AllowFunctionDeclaration;
+      if (allowLabeledFunction) {
+        flags |= ParseStatementFlag.AllowLabeledFunction;
+      }
+    }
+    return this.parseStatementLike(flags);
   }
 
   // Parse a single statement.
@@ -438,12 +446,15 @@ export default abstract class StatementParser extends ExpressionParser {
         return this.parseForStatement(node as Undone<N.ForStatement>);
       case tt._function:
         if (this.lookaheadCharCode() === charCodes.dot) break;
-        if (!allowDeclaration) {
-          if (this.state.strict) {
-            this.raise(Errors.StrictFunction, { at: this.state.startLoc });
-          } else if (!allowFunctionDeclaration) {
-            this.raise(Errors.SloppyFunction, { at: this.state.startLoc });
-          }
+        if (!allowFunctionDeclaration) {
+          this.raise(
+            this.state.strict
+              ? Errors.StrictFunction
+              : this.options.annexB
+              ? Errors.SloppyFunctionAnnexB
+              : Errors.SloppyFunction,
+            { at: this.state.startLoc },
+          );
         }
         return this.parseFunctionStatement(
           node as Undone<N.FunctionDeclaration>,
@@ -647,7 +658,7 @@ export default abstract class StatementParser extends ExpressionParser {
     if (this.hasPlugin("decorators-legacy")) return true;
     return (
       this.hasPlugin("decorators") &&
-      !!this.getPluginOption("decorators", "decoratorsBeforeExport")
+      this.getPluginOption("decorators", "decoratorsBeforeExport") !== false
     );
   }
 
@@ -663,7 +674,26 @@ export default abstract class StatementParser extends ExpressionParser {
     exportNode?: Undone<N.ExportDefaultDeclaration | N.ExportNamedDeclaration>,
   ): T {
     if (maybeDecorators) {
-      classNode.decorators = maybeDecorators;
+      if (classNode.decorators && classNode.decorators.length > 0) {
+        // Note: decorators attachment is only attempred multiple times
+        // when the class is part of an export declaration.
+        if (
+          typeof this.getPluginOption(
+            "decorators",
+            "decoratorsBeforeExport",
+          ) !== "boolean"
+        ) {
+          // If `decoratorsBeforeExport` was set to `true` or `false`, we
+          // already threw an error about decorators not being in a valid
+          // position.
+          this.raise(Errors.DecoratorsBeforeAfterExport, {
+            at: classNode.decorators[0],
+          });
+        }
+        classNode.decorators.unshift(...maybeDecorators);
+      } else {
+        classNode.decorators = maybeDecorators;
+      }
       this.resetStartLocationFromNode(classNode, maybeDecorators[0]);
       if (exportNode) this.resetStartLocationFromNode(exportNode, classNode);
     }
@@ -981,12 +1011,9 @@ export default abstract class StatementParser extends ExpressionParser {
     node.test = this.parseHeaderExpression();
     // Annex B.3.3
     // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-    node.consequent = this.parseStatementOrFunctionDeclaration(
-      // https://tc39.es/ecma262/#sec-if-statement-static-semantics-early-errors
-      true,
-    );
+    node.consequent = this.parseStatementOrSloppyAnnexBFunctionDeclaration();
     node.alternate = this.eat(tt._else)
-      ? this.parseStatementOrFunctionDeclaration(true)
+      ? this.parseStatementOrSloppyAnnexBFunctionDeclaration()
       : null;
     return this.finishNode(node, "IfStatement");
   }
@@ -1074,8 +1101,11 @@ export default abstract class StatementParser extends ExpressionParser {
   parseCatchClauseParam(this: Parser): N.Pattern {
     const param = this.parseBindingAtom();
 
-    const simple = param.type === "Identifier";
-    this.scope.enter(simple ? SCOPE_SIMPLE_CATCH : 0);
+    this.scope.enter(
+      this.options.annexB && param.type === "Identifier"
+        ? SCOPE_SIMPLE_CATCH
+        : 0,
+    );
     this.checkLVal(param, {
       in: { type: "CatchClause" },
       binding: BIND_CATCH_PARAM,
@@ -1234,7 +1264,7 @@ export default abstract class StatementParser extends ExpressionParser {
     // https://tc39.es/ecma262/#prod-LabelledItem
     node.body =
       flags & ParseStatementFlag.AllowLabeledFunction
-        ? this.parseStatementOrFunctionDeclaration(false)
+        ? this.parseStatementOrSloppyAnnexBFunctionDeclaration(true)
         : this.parseStatement();
 
     this.state.labels.pop();
@@ -1419,6 +1449,7 @@ export default abstract class StatementParser extends ExpressionParser {
       init.type === "VariableDeclaration" &&
       init.declarations[0].init != null &&
       (!isForIn ||
+        !this.options.annexB ||
         this.state.strict ||
         init.kind !== "var" ||
         init.declarations[0].id.type !== "Identifier")
@@ -1626,7 +1657,7 @@ export default abstract class StatementParser extends ExpressionParser {
     // treatFunctionsAsVar).
     this.scope.declareName(
       node.id.name,
-      this.state.strict || node.generator || node.async
+      !this.options.annexB || this.state.strict || node.generator || node.async
         ? this.scope.treatFunctionsAsVar
           ? BIND_VAR
           : BIND_LEXICAL
@@ -2469,7 +2500,7 @@ export default abstract class StatementParser extends ExpressionParser {
     if (this.match(tt.at)) {
       if (
         this.hasPlugin("decorators") &&
-        this.getPluginOption("decorators", "decoratorsBeforeExport")
+        this.getPluginOption("decorators", "decoratorsBeforeExport") === true
       ) {
         this.raise(Errors.DecoratorBeforeExport, { at: this.state.startLoc });
       }
@@ -2584,8 +2615,10 @@ export default abstract class StatementParser extends ExpressionParser {
     if (type === tt.at) {
       this.expectOnePlugin(["decorators", "decorators-legacy"]);
       if (this.hasPlugin("decorators")) {
-        if (this.getPluginOption("decorators", "decoratorsBeforeExport")) {
-          throw this.raise(Errors.DecoratorBeforeExport, {
+        if (
+          this.getPluginOption("decorators", "decoratorsBeforeExport") === true
+        ) {
+          this.raise(Errors.DecoratorBeforeExport, {
             at: this.state.startLoc,
           });
         }
