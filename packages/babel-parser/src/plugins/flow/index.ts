@@ -338,7 +338,7 @@ export default (superClass: typeof Parser) =>
           this.flowPragma = null;
         }
       }
-      return super.finishToken(type, val);
+      super.finishToken(type, val);
     }
 
     addComment(comment: N.Comment): void {
@@ -355,7 +355,7 @@ export default (superClass: typeof Parser) =>
           throw new Error("Unexpected flow pragma");
         }
       }
-      return super.addComment(comment);
+      super.addComment(comment);
     }
 
     flowParseTypeInitialiser(tok?: TokenType): N.FlowType {
@@ -493,7 +493,7 @@ export default (superClass: typeof Parser) =>
       } else if (this.match(tt._export)) {
         return this.flowParseDeclareExportDeclaration(node, insideModule);
       } else {
-        throw this.unexpected();
+        this.unexpected();
       }
     }
 
@@ -654,7 +654,7 @@ export default (superClass: typeof Parser) =>
         }
       }
 
-      throw this.unexpected();
+      this.unexpected();
     }
 
     flowParseDeclareModuleExports(
@@ -692,16 +692,13 @@ export default (superClass: typeof Parser) =>
       node: Undone<N.FlowDeclareInterface>,
     ): N.FlowDeclareInterface {
       this.next();
-      this.flowParseInterfaceish(node);
+      this.flowParseInterfaceish(node, /* isClass */ false);
       return this.finishNode(node, "DeclareInterface");
     }
 
     // Interfaces
 
-    flowParseInterfaceish(
-      node: Undone<N.FlowDeclare>,
-      isClass: boolean = false,
-    ): void {
+    flowParseInterfaceish(node: Undone<N.FlowDeclare>, isClass: boolean): void {
       node.id = this.flowParseRestrictedIdentifier(
         /* liberal */ !isClass,
         /* declaration */ true,
@@ -729,18 +726,18 @@ export default (superClass: typeof Parser) =>
         } while (!isClass && this.eat(tt.comma));
       }
 
-      if (this.isContextual(tt._mixins)) {
-        this.next();
-        do {
-          node.mixins.push(this.flowParseInterfaceExtends());
-        } while (this.eat(tt.comma));
-      }
+      if (isClass) {
+        if (this.eatContextual(tt._mixins)) {
+          do {
+            node.mixins.push(this.flowParseInterfaceExtends());
+          } while (this.eat(tt.comma));
+        }
 
-      if (this.isContextual(tt._implements)) {
-        this.next();
-        do {
-          node.implements.push(this.flowParseInterfaceExtends());
-        } while (this.eat(tt.comma));
+        if (this.eatContextual(tt._implements)) {
+          do {
+            node.implements.push(this.flowParseInterfaceExtends());
+          } while (this.eat(tt.comma));
+        }
       }
 
       node.body = this.flowParseObjectType({
@@ -766,7 +763,7 @@ export default (superClass: typeof Parser) =>
     }
 
     flowParseInterface(node: Undone<N.FlowInterface>): N.FlowInterface {
-      this.flowParseInterfaceish(node);
+      this.flowParseInterfaceish(node, /* isClass */ false);
       return this.finishNode(node, "InterfaceDeclaration");
     }
 
@@ -1685,8 +1682,8 @@ export default (superClass: typeof Parser) =>
               at: this.state.startLoc,
             });
           }
-
-          throw this.unexpected();
+          this.unexpected();
+          return;
         case tt.num:
           return this.parseLiteral(
             this.state.value,
@@ -1736,7 +1733,7 @@ export default (superClass: typeof Parser) =>
           }
       }
 
-      throw this.unexpected();
+      this.unexpected();
     }
 
     flowParsePostfixType(): N.FlowTypeAnnotation {
@@ -1900,12 +1897,13 @@ export default (superClass: typeof Parser) =>
       isMethod: boolean = false,
     ): void {
       if (allowExpressionBody) {
-        return this.forwardNoArrowParamsConversionAt(node, () =>
+        this.forwardNoArrowParamsConversionAt(node, () =>
           super.parseFunctionBody(node, true, isMethod),
         );
+        return;
       }
 
-      return super.parseFunctionBody(node, false, isMethod);
+      super.parseFunctionBody(node, false, isMethod);
     }
 
     parseFunctionBodyAndFinish<
@@ -2379,25 +2377,26 @@ export default (superClass: typeof Parser) =>
     getTokenFromCode(code: number): void {
       const next = this.input.charCodeAt(this.state.pos + 1);
       if (code === charCodes.leftCurlyBrace && next === charCodes.verticalBar) {
-        return this.finishOp(tt.braceBarL, 2);
+        this.finishOp(tt.braceBarL, 2);
       } else if (
         this.state.inType &&
         (code === charCodes.greaterThan || code === charCodes.lessThan)
       ) {
-        return this.finishOp(code === charCodes.greaterThan ? tt.gt : tt.lt, 1);
+        this.finishOp(code === charCodes.greaterThan ? tt.gt : tt.lt, 1);
       } else if (this.state.inType && code === charCodes.questionMark) {
         if (next === charCodes.dot) {
-          return this.finishOp(tt.questionDot, 2);
+          this.finishOp(tt.questionDot, 2);
+        } else {
+          // allow double nullable types in Flow: ??string
+          this.finishOp(tt.question, 1);
         }
-        // allow double nullable types in Flow: ??string
-        return this.finishOp(tt.question, 1);
       } else if (
         isIteratorStart(code, next, this.input.charCodeAt(this.state.pos + 2))
       ) {
         this.state.pos += 2; // eat "@@"
-        return this.readIterator();
+        this.readIterator();
       } else {
-        return super.getTokenFromCode(code);
+        super.getTokenFromCode(code);
       }
     }
 
@@ -3149,7 +3148,7 @@ export default (superClass: typeof Parser) =>
         }
       }
 
-      return super.checkParams(
+      super.checkParams(
         node,
         allowDuplicates,
         isArrowFunction,

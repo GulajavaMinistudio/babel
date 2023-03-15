@@ -24,9 +24,12 @@ function isInType(path: NodePath) {
       );
     case "ExportSpecifier":
       return (
+        // export { type foo };
+        path.parent.exportKind === "type" ||
+        // export type { foo };
         // @ts-expect-error: DeclareExportDeclaration does not have `exportKind`
         (path.parentPath as NodePath<t.ExportSpecifier>).parent.exportKind ===
-        "type"
+          "type"
       );
     default:
       return false;
@@ -592,6 +595,7 @@ export default declare((api, opts: Options) => {
             ),
           ]),
         );
+        path.scope.registerDeclaration(path);
       },
 
       TSExportAssignment(path) {
