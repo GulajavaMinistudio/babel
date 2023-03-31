@@ -19,7 +19,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: 'Check or update Yarn cache (fix w/ "yarn install")'
@@ -39,7 +39,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: 'Check for unmet constraints (fix w/ "yarn constraints --fix")'
@@ -62,7 +62,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Generate coverage report
@@ -82,7 +82,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Use ESM and build
@@ -90,9 +90,7 @@ jobs:
         env:
           USE_ESM: true
       - name: Test
-        # Hack: --color has supports-color@5 returned true for GitHub CI
-        # Remove once `chalk` is bumped to 4.0.
-        run: yarn jest --ci --color
+        run: yarn jest --ci
         env:
           BABEL_ENV: test
           USE_ESM: true
@@ -110,7 +108,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Build babel artifacts
@@ -146,7 +144,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Build babel artifacts
@@ -170,7 +168,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -200,7 +198,7 @@ jobs:
       - name: Use Node.js latest # Run yarn on latest node
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -231,19 +229,16 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Test on node.js ${{ matrix.node-version }}
-        # Hack: --color has supports-color@5 returned true for GitHub CI
-        # Remove once `chalk` is bumped to 4.0.
-
         # Todo(Babel 8): Jest execution path is hardcoded because Yarn 2 does not support node 6
         run: |
-          BABEL_ENV=test node --max-old-space-size=4096 ./node_modules/.bin/jest --ci --color
+          BABEL_ENV=test node --max-old-space-size=4096 ./node_modules/.bin/jest --ci
         env:
           TEST_FUZZ: "${{ (matrix.node-version == '6' || matrix.node-version == '8' || matrix.node-version == '10') && 'false' || 'true' }}"
       - name: Use Node.js latest # For `yarn version` in post actions of the first actions/setup-node
         if: matrix.node-version == '6' || matrix.node-version == '8' || matrix.node-version == '10'
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
 
   build-babel8:
     name: Build Babel 8 Artifacts for tests
@@ -307,10 +302,8 @@ jobs:
       - name: Generate runtime helpers
         run: make build-plugin-transform-runtime-dist
       - name: Test
-        # Hack: --color has supports-color@5 returned true for GitHub CI
-        # Remove once `chalk` is bumped to 4.0.
         run: |
-          yarn jest --ci --color
+          yarn jest --ci
           yarn test:esm
         env:
           BABEL_ENV: test
@@ -327,7 +320,7 @@ jobs:
       - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -338,9 +331,7 @@ jobs:
       - name: Extract artifacts
         run: tar -xf babel-artifact.tar; rm babel-artifact.tar
       - name: Test on Windows
-        # Hack: --color has supports-color@5 returned true for GitHub CI
-        # Remove once `chalk` is bumped to 4.0.
-        run: yarn jest --ci --color
+        run: yarn jest --ci
         env:
           BABEL_ENV: test
 
@@ -354,7 +345,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -383,7 +374,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       # See https://github.com/babel/babel/pull/12906
@@ -489,7 +480,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -514,7 +505,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
       - name: Checkout test runner
         uses: actions/checkout@v3
@@ -551,7 +542,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: "19.7"
+          node-version: latest
           check-latest: true
       - name: Install
         run: yarn install

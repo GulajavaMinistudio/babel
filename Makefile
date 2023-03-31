@@ -1,5 +1,5 @@
 FLOW_COMMIT = 105ad30f566f401db9cafcb49cd2831fb29e87c5
-TEST262_COMMIT = 53e5ef817eb212d0d4f6f0ab44275094e5bf876d
+TEST262_COMMIT = ff405fd0df81ff52c3bcb5b2be3e872983fb0402
 TYPESCRIPT_COMMIT = d87d0adcd30ac285393bf3bfbbb4d94d50c4f3c9
 
 SOURCES = packages codemods eslint
@@ -177,15 +177,14 @@ test-test262-update-allowlist:
 
 
 new-version-checklist:
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @echo "!!!!!!                                                   !!!!!!"
-	# @echo "!!!!!!   Write any release-blocking message here, and    !!!!!!"
-	# @echo "!!!!!!              UNCOMMENT THESE LINES                !!!!!!"
-	# @echo "!!!!!!                                                   !!!!!!"
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @exit 1
+	@echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	@echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	@echo "!!!!!!                                                   !!!!!!"
+	@echo "!!!!!!  Update the semver.lte check in module-types.ts   !!!!!!"
+	@echo "!!!!!!                                                   !!!!!!"
+	@echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	@echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	@exit 1
 
 new-version:
 	$(MAKE) new-version-checklist
