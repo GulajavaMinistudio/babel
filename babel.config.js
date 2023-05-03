@@ -27,7 +27,7 @@ module.exports = function (api) {
     exclude: [
       "transform-typeof-symbol",
       // We need to enable useBuiltIns
-      "proposal-object-rest-spread",
+      "transform-object-rest-spread",
     ],
   };
 
@@ -182,7 +182,6 @@ module.exports = function (api) {
       ["@babel/proposal-object-rest-spread", { useBuiltIns: true }],
 
       convertESM ? "@babel/proposal-export-namespace-from" : null,
-      convertESM ? pluginImportMetaUrl : null,
 
       pluginPackageJsonMacro,
 
@@ -275,6 +274,12 @@ module.exports = function (api) {
             { importInterop: importInteropSrc },
           ],
         ],
+      },
+      convertESM && {
+        exclude: [
+          "./packages/babel-core/src/config/files/import-meta-resolve.ts",
+        ].map(normalize),
+        plugins: [pluginImportMetaUrl],
       },
       {
         test: sources.map(source => normalize(source.replace("/src", "/test"))),

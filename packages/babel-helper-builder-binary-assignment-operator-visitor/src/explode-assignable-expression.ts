@@ -70,23 +70,15 @@ function getPropRef(
   return temp;
 }
 
-// TODO(Babel 8): Remove the "file" parameter
-export default function (
+export default function explode(
   node: t.Identifier | t.MemberExpression,
   nodes: Array<t.AssignmentExpression>,
-  file: void,
   scope: Scope,
-  allowedSingleIdent?: boolean,
 ): {
   uid: t.Identifier | t.MemberExpression | t.Super;
   ref: t.Identifier | t.MemberExpression;
 } {
-  let obj;
-  if (isIdentifier(node) && allowedSingleIdent) {
-    obj = node;
-  } else {
-    obj = getObjRef(node, nodes, scope);
-  }
+  const obj = getObjRef(node, nodes, scope);
 
   let ref, uid;
 

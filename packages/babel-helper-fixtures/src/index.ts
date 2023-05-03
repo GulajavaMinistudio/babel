@@ -93,12 +93,14 @@ function shouldIgnore(name: string, ignore?: Array<string>) {
   );
 }
 
-const EXTENSIONS = [".js", ".mjs", ".ts", ".tsx", ".cts", ".mts"];
+const EXTENSIONS = [".js", ".mjs", ".ts", ".tsx", ".cts", ".mts", ".vue"];
+const JSON_AND_EXTENSIONS = [".json", ...EXTENSIONS];
 
 function findFile(filepath: string, allowJSON?: boolean) {
   const matches = [];
+  const extensions = allowJSON ? JSON_AND_EXTENSIONS : EXTENSIONS;
 
-  for (const ext of EXTENSIONS.concat(allowJSON ? ".json" : [])) {
+  for (const ext of extensions) {
     const name = filepath + ext;
 
     if (fs.existsSync(name)) matches.push(name);
@@ -360,6 +362,17 @@ export function resolveOptionPluginOrPreset(
   options: any,
   optionsDir: string,
 ): {} {
+  if (options.overrides) {
+    for (const subOption of options.overrides) {
+      resolveOptionPluginOrPreset(subOption, optionsDir);
+    }
+  }
+  if (options.env) {
+    for (const envName in options.env) {
+      if (!{}.hasOwnProperty.call(options.env, envName)) continue;
+      resolveOptionPluginOrPreset(options.env[envName], optionsDir);
+    }
+  }
   if (options.plugins) {
     options.plugins = wrapPackagesArray("plugin", options.plugins, optionsDir);
   }

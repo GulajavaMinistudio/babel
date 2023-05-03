@@ -1,5 +1,5 @@
 FLOW_COMMIT = 105ad30f566f401db9cafcb49cd2831fb29e87c5
-TEST262_COMMIT = beb4f26eb4e6f6f2bf71c8441521aaa950e62052
+TEST262_COMMIT = 63e0986803f3e251264744e5b7e3d31f93831d84
 TYPESCRIPT_COMMIT = d87d0adcd30ac285393bf3bfbbb4d94d50c4f3c9
 
 SOURCES = packages codemods eslint
@@ -177,20 +177,13 @@ test-test262-update-allowlist:
 
 
 new-version-checklist:
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @echo "!!!!!!                                                   !!!!!!"
-	# @echo "!!!!!!   Write any release-blocking message here, and    !!!!!!"
-	# @echo "!!!!!!              UNCOMMENT THESE LINES                !!!!!!"
-	# @echo "!!!!!!                                                   !!!!!!"
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	# @exit 1
+	$(MAKEJS) new-version-checklist
 
 new-version:
-	$(MAKE) new-version-checklist
-	git pull --rebase
-	$(YARN) release-tool version -f @babel/standalone
+	$(MAKEJS) new-version
+
+new-babel-8-version:
+	$(MAKEJS) new-babel-8-version
 
 # NOTE: Run make new-version first
 publish:
@@ -200,7 +193,11 @@ publish:
 		exit 1; \
 	fi
 	$(MAKE) prepublish
+ifeq ("$(BABEL_8_BREAKING)", "true")
+	USE_ESM=true $(YARN) release-tool publish --tag next
+else
 	$(YARN) release-tool publish
+endif
 	$(MAKE) clean
 
 publish-test:

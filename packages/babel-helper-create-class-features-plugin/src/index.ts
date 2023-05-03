@@ -38,10 +38,12 @@ export function createClassFeaturePlugin({
   feature,
   loose,
   manipulateOptions,
-  // @ts-ignore(Babel 7 vs Babel 8) TODO(Babel 8): Remove the default value
-  api = { assumption: () => void 0 },
+  api,
   inherits,
 }: Options): PluginObject {
+  if (!process.env.BABEL_8_BREAKING) {
+    api ??= { assumption: () => void 0 as any } as any;
+  }
   const setPublicClassFields = api.assumption("setPublicClassFields");
   const privateFieldsAsSymbols = api.assumption("privateFieldsAsSymbols");
   const privateFieldsAsProperties = api.assumption("privateFieldsAsProperties");
@@ -94,6 +96,15 @@ export function createClassFeaturePlugin({
     pre(file) {
       enableFeature(file, feature, loose);
 
+      if (!process.env.BABEL_8_BREAKING) {
+        // Until 7.21.4, we used to encode the version as a number.
+        // If file.get(versionKey) is a number, it has thus been
+        // set by an older version of this plugin.
+        if (typeof file.get(versionKey) === "number") {
+          file.set(versionKey, PACKAGE_JSON.version);
+          return;
+        }
+      }
       if (
         !file.get(versionKey) ||
         semver.lt(file.get(versionKey), PACKAGE_JSON.version)
