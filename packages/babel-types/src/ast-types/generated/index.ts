@@ -688,7 +688,7 @@ export interface UpdateExpression extends BaseNode {
 
 export interface VariableDeclaration extends BaseNode {
   type: "VariableDeclaration";
-  kind: "var" | "let" | "const" | "using";
+  kind: "var" | "let" | "const" | "using" | "await using";
   declarations: Array<VariableDeclarator>;
   declare?: boolean | null;
 }
@@ -811,6 +811,7 @@ export interface ExportAllDeclaration extends BaseNode {
   type: "ExportAllDeclaration";
   source: StringLiteral;
   assertions?: Array<ImportAttribute> | null;
+  attributes?: Array<ImportAttribute> | null;
   exportKind?: "type" | "value" | null;
 }
 
@@ -832,6 +833,7 @@ export interface ExportNamedDeclaration extends BaseNode {
   >;
   source?: StringLiteral | null;
   assertions?: Array<ImportAttribute> | null;
+  attributes?: Array<ImportAttribute> | null;
   exportKind?: "type" | "value" | null;
 }
 
@@ -857,6 +859,7 @@ export interface ImportDeclaration extends BaseNode {
   >;
   source: StringLiteral;
   assertions?: Array<ImportAttribute> | null;
+  attributes?: Array<ImportAttribute> | null;
   importKind?: "type" | "typeof" | "value" | null;
   module?: boolean | null;
 }

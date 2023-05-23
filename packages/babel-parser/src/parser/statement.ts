@@ -10,7 +10,6 @@ import {
 import ExpressionParser from "./expression";
 import { Errors } from "../parse-error";
 import { isIdentifierChar, isIdentifierStart } from "../util/identifier";
-import { lineBreak } from "../util/whitespace";
 import * as charCodes from "charcodes";
 import {
   BIND_CLASS,
@@ -349,6 +348,19 @@ export default abstract class StatementParser extends ExpressionParser {
     }
   }
 
+  startsAwaitUsing(): boolean {
+    let next = this.nextTokenInLineStart();
+    if (this.isUnparsedContextual(next, "using")) {
+      next = this.nextTokenInLineStartSince(next + 5);
+      const nextCh = this.codePointAtPos(next);
+      if (this.chStartsBindingIdentifier(nextCh, next)) {
+        this.expectPlugin("explicitResourceManagement");
+        return true;
+      }
+    }
+    return false;
+  }
+
   // https://tc39.es/ecma262/#prod-ModuleItem
   parseModuleItem(this: Parser) {
     return this.parseStatementLike(
@@ -483,6 +495,23 @@ export default abstract class StatementParser extends ExpressionParser {
       case tt._try:
         return this.parseTryStatement(node as Undone<N.TryStatement>);
 
+      case tt._await:
+        // [+Await] await [no LineTerminator here] using [no LineTerminator here] BindingList[+Using]
+        if (!this.state.containsEsc && this.startsAwaitUsing()) {
+          if (!this.isAwaitAllowed()) {
+            this.raise(Errors.AwaitUsingNotInAsyncContext, { at: node });
+          } else if (!allowDeclaration) {
+            this.raise(Errors.UnexpectedLexicalDeclaration, {
+              at: node,
+            });
+          }
+          this.next(); // eat 'await'
+          return this.parseVarStatement(
+            node as Undone<N.VariableDeclaration>,
+            "await using",
+          );
+        }
+        break;
       case tt._using:
         // using [no LineTerminator here] BindingList[+Using]
         if (
@@ -913,31 +942,49 @@ export default abstract class StatementParser extends ExpressionParser {
     }
 
     const startsWithLet = this.isContextual(tt._let);
-    const startsWithUsing = this.isContextual(tt._using);
-    const isLetOrUsing =
-      (startsWithLet && this.hasFollowingBindingAtom()) ||
-      (startsWithUsing && this.startsUsingForOf());
-    if (this.match(tt._var) || this.match(tt._const) || isLetOrUsing) {
-      const initNode = this.startNode<N.VariableDeclaration>();
-      const kind = this.state.value;
-      this.next();
-      this.parseVar(initNode, true, kind);
-      const init = this.finishNode(initNode, "VariableDeclaration");
+    {
+      const startsWithAwaitUsing =
+        this.isContextual(tt._await) && this.startsAwaitUsing();
+      const starsWithUsingDeclaration =
+        startsWithAwaitUsing ||
+        (this.isContextual(tt._using) && this.startsUsingForOf());
+      const isLetOrUsing =
+        (startsWithLet && this.hasFollowingBindingAtom()) ||
+        starsWithUsingDeclaration;
 
-      const isForIn = this.match(tt._in);
-      if (isForIn && startsWithUsing) {
-        this.raise(Errors.ForInUsing, { at: init });
+      if (this.match(tt._var) || this.match(tt._const) || isLetOrUsing) {
+        const initNode = this.startNode<N.VariableDeclaration>();
+        let kind;
+        if (startsWithAwaitUsing) {
+          kind = "await using";
+          if (!this.isAwaitAllowed()) {
+            this.raise(Errors.AwaitUsingNotInAsyncContext, {
+              at: this.state.startLoc,
+            });
+          }
+          this.next(); // eat 'await'
+        } else {
+          kind = this.state.value;
+        }
+        this.next();
+        this.parseVar(initNode, true, kind);
+        const init = this.finishNode(initNode, "VariableDeclaration");
+
+        const isForIn = this.match(tt._in);
+        if (isForIn && starsWithUsingDeclaration) {
+          this.raise(Errors.ForInUsing, { at: init });
+        }
+        if (
+          (isForIn || this.isContextual(tt._of)) &&
+          init.declarations.length === 1
+        ) {
+          return this.parseForIn(node as Undone<N.ForInOf>, init, awaitAt);
+        }
+        if (awaitAt !== null) {
+          this.unexpected(awaitAt);
+        }
+        return this.parseFor(node as Undone<N.ForStatement>, init);
       }
-      if (
-        (isForIn || this.isContextual(tt._of)) &&
-        init.declarations.length === 1
-      ) {
-        return this.parseForIn(node as Undone<N.ForInOf>, init, awaitAt);
-      }
-      if (awaitAt !== null) {
-        this.unexpected(awaitAt);
-      }
-      return this.parseFor(node as Undone<N.ForStatement>, init);
     }
 
     // Check whether the first token is possibly a contextual keyword, so that
@@ -1159,7 +1206,7 @@ export default abstract class StatementParser extends ExpressionParser {
   parseVarStatement(
     this: Parser,
     node: Undone<N.VariableDeclaration>,
-    kind: "var" | "let" | "const" | "using",
+    kind: "var" | "let" | "const" | "using" | "await using",
     allowMissingInitializer: boolean = false,
   ): N.VariableDeclaration {
     this.next();
@@ -1492,7 +1539,7 @@ export default abstract class StatementParser extends ExpressionParser {
     this: Parser,
     node: Undone<N.VariableDeclaration>,
     isFor: boolean,
-    kind: "var" | "let" | "const" | "using",
+    kind: "var" | "let" | "const" | "using" | "await using",
     allowMissingInitializer: boolean = false,
   ): Undone<N.VariableDeclaration> {
     const declarations: N.VariableDeclarator[] = (node.declarations = []);
@@ -1534,7 +1581,7 @@ export default abstract class StatementParser extends ExpressionParser {
   parseVarId(
     this: Parser,
     decl: Undone<N.VariableDeclarator>,
-    kind: "var" | "let" | "const" | "using",
+    kind: "var" | "let" | "const" | "using" | "await using",
   ): void {
     const id = this.parseBindingAtom();
     this.checkLVal(id, {
@@ -2458,11 +2505,8 @@ export default abstract class StatementParser extends ExpressionParser {
 
   isAsyncFunction(): boolean {
     if (!this.isContextual(tt._async)) return false;
-    const next = this.nextTokenStart();
-    return (
-      !lineBreak.test(this.input.slice(this.state.pos, next)) &&
-      this.isUnparsedContextual(next, "function")
-    );
+    const next = this.nextTokenInLineStart();
+    return this.isUnparsedContextual(next, "function");
   }
 
   parseExportDefaultExpression(this: Parser): N.Expression | N.Declaration {
@@ -2590,11 +2634,8 @@ export default abstract class StatementParser extends ExpressionParser {
     if (this.eatContextual(tt._from)) {
       node.source = this.parseImportSource();
       this.checkExport(node);
-      const assertions = this.maybeParseImportAssertions();
-      if (assertions) {
-        node.assertions = assertions;
-        this.checkJSONModuleImport(node);
-      }
+      this.maybeParseImportAttributes(node);
+      this.checkJSONModuleImport(node);
     } else if (expect) {
       this.unexpected();
     }
@@ -2939,19 +2980,7 @@ export default abstract class StatementParser extends ExpressionParser {
       this.expectContextual(tt._from);
     }
     node.source = this.parseImportSource();
-    // https://github.com/tc39/proposal-import-assertions
-    // parse module import assertions if the next token is `assert` or ignore
-    // and finish the ImportDeclaration node.
-    const assertions = this.maybeParseImportAssertions();
-    if (assertions) {
-      node.assertions = assertions;
-    } else if (!process.env.BABEL_8_BREAKING) {
-      const attributes = this.maybeParseModuleAttributes();
-      if (attributes) {
-        // @ts-expect-error attributes have been deprecated
-        node.attributes = attributes;
-      }
-    }
+    this.maybeParseImportAttributes(node);
     this.checkImportReflection(node);
     this.checkJSONModuleImport(node);
 
@@ -2999,9 +3028,11 @@ export default abstract class StatementParser extends ExpressionParser {
   /**
    * parse assert entries
    *
-   * @see {@link https://tc39.es/proposal-import-assertions/#prod-AssertEntries AssertEntries}
+   * @see {@link https://tc39.es/proposal-import-attributes/#prod-WithEntries WithEntries}
    */
-  parseAssertEntries(): N.ImportAttribute[] {
+  parseImportAttributes(): N.ImportAttribute[] {
+    this.expect(tt.braceL);
+
     const attrs = [];
     const attrNames = new Set();
 
@@ -3040,6 +3071,8 @@ export default abstract class StatementParser extends ExpressionParser {
       attrs.push(this.finishNode(node, "ImportAttribute"));
     } while (this.eat(tt.comma));
 
+    this.expect(tt.braceR);
+
     return attrs;
   }
 
@@ -3047,18 +3080,11 @@ export default abstract class StatementParser extends ExpressionParser {
    * parse module attributes
    * @deprecated It will be removed in Babel 8
    */
-  maybeParseModuleAttributes() {
-    if (this.match(tt._with) && !this.hasPrecedingLineBreak()) {
-      this.expectPlugin("moduleAttributes");
-      this.next();
-    } else {
-      if (this.hasPlugin("moduleAttributes")) return [];
-      return null;
-    }
-    const attrs = [];
+  parseModuleAttributes() {
+    const attrs: N.ImportAttribute[] = [];
     const attributes = new Set();
     do {
-      const node = this.startNode();
+      const node = this.startNode<N.ImportAttribute>();
       node.key = this.parseIdentifier(true);
 
       if (node.key.name !== "type") {
@@ -3081,28 +3107,74 @@ export default abstract class StatementParser extends ExpressionParser {
         });
       }
       node.value = this.parseStringLiteral(this.state.value);
-      this.finishNode(node, "ImportAttribute");
-      attrs.push(node);
+      attrs.push(this.finishNode(node, "ImportAttribute"));
     } while (this.eat(tt.comma));
 
     return attrs;
   }
 
-  maybeParseImportAssertions() {
-    // [no LineTerminator here] AssertClause
-    if (this.isContextual(tt._assert) && !this.hasPrecedingLineBreak()) {
-      this.expectPlugin("importAssertions");
-      this.next(); // eat `assert`
-    } else {
-      if (this.hasPlugin("importAssertions")) return [];
-      return null;
-    }
-    // https://tc39.es/proposal-import-assertions/#prod-AssertClause
-    this.eat(tt.braceL);
-    const attrs = this.parseAssertEntries();
-    this.eat(tt.braceR);
+  maybeParseImportAttributes(
+    node: Undone<N.ImportDeclaration | N.ExportNamedDeclaration>,
+  ) {
+    let attributes: N.ImportAttribute[];
+    let useWith = false;
 
-    return attrs;
+    // https://tc39.es/proposal-import-attributes/#prod-WithClause
+    if (this.match(tt._with)) {
+      if (
+        this.hasPrecedingLineBreak() &&
+        this.lookaheadCharCode() === charCodes.leftParenthesis
+      ) {
+        // This will be parsed as a with statement, and we will throw a
+        // better error about it not being supported in strict mode.
+        return;
+      }
+
+      this.next(); // eat `with`
+
+      if (!process.env.BABEL_8_BREAKING) {
+        if (this.hasPlugin("moduleAttributes")) {
+          attributes = this.parseModuleAttributes();
+        } else {
+          this.expectImportAttributesPlugin();
+          attributes = this.parseImportAttributes();
+        }
+      } else {
+        this.expectImportAttributesPlugin();
+        attributes = this.parseImportAttributes();
+      }
+      useWith = true;
+    } else if (this.isContextual(tt._assert) && !this.hasPrecedingLineBreak()) {
+      if (this.hasPlugin("importAttributes")) {
+        if (
+          this.getPluginOption("importAttributes", "deprecatedAssertSyntax") !==
+          true
+        ) {
+          this.raise(Errors.ImportAttributesUseAssert, {
+            at: this.state.startLoc,
+          });
+        }
+      } else {
+        this.expectOnePlugin(["importAttributes", "importAssertions"]);
+      }
+      this.next(); // eat `assert`
+      attributes = this.parseImportAttributes();
+    } else if (
+      this.hasPlugin("importAttributes") ||
+      this.hasPlugin("importAssertions")
+    ) {
+      attributes = [];
+    } else if (!process.env.BABEL_8_BREAKING) {
+      if (this.hasPlugin("moduleAttributes")) {
+        attributes = [];
+      } else return;
+    } else return;
+
+    if (!useWith && this.hasPlugin("importAssertions")) {
+      node.assertions = attributes;
+    } else {
+      node.attributes = attributes;
+    }
   }
 
   maybeParseDefaultImportSpecifier(node: Undone<N.ImportDeclaration>): boolean {

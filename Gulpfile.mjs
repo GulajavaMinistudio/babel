@@ -249,7 +249,12 @@ function getFiles(glob, { include, exclude }) {
 
 function createWorker(useWorker) {
   const numWorkers = Math.ceil(Math.max(cpus().length, 1) / 2) - 1;
-  if (numWorkers === 0 || !useWorker) {
+  if (
+    numWorkers === 0 ||
+    !useWorker ||
+    // For some reason, on CircleCI the workers hang indefinitely.
+    process.env.CIRCLECI
+  ) {
     return require("./babel-worker.cjs");
   }
   const worker = new JestWorker(require.resolve("./babel-worker.cjs"), {
@@ -404,6 +409,8 @@ function buildRollup(packages, buildStandalone) {
                 "packages/babel-preset-env/data/*.js",
                 // Rollup doesn't read export maps, so it loads the cjs fallback
                 "packages/babel-compat-data/*.js",
+                // Used by @babel/standalone
+                "packages/babel-compat-data/scripts/data/legacy-plugin-aliases.js",
                 "packages/*/src/**/*.cjs",
               ],
               dynamicRequireTargets: [
@@ -677,8 +684,8 @@ if (bool(process.env.BABEL_8_BREAKING)) {
   libBundles = [
     "packages/babel-parser",
     "packages/babel-plugin-proposal-destructuring-private",
-    "packages/babel-plugin-proposal-object-rest-spread",
-    "packages/babel-plugin-proposal-optional-chaining",
+    "packages/babel-plugin-transform-object-rest-spread",
+    "packages/babel-plugin-transform-optional-chaining",
     "packages/babel-preset-react",
     "packages/babel-plugin-transform-destructuring",
     "packages/babel-preset-typescript",

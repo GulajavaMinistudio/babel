@@ -6,6 +6,7 @@ import syntaxClassStaticBlock from "@babel/plugin-syntax-class-static-block";
 import syntaxDynamicImport from "@babel/plugin-syntax-dynamic-import";
 import syntaxExportNamespaceFrom from "@babel/plugin-syntax-export-namespace-from";
 import syntaxImportAssertions from "@babel/plugin-syntax-import-assertions";
+import syntaxImportAttributes from "@babel/plugin-syntax-import-attributes";
 import syntaxImportMeta from "@babel/plugin-syntax-import-meta";
 import syntaxJsonStrings from "@babel/plugin-syntax-json-strings";
 import syntaxLogicalAssignmentOperators from "@babel/plugin-syntax-logical-assignment-operators";
@@ -16,21 +17,21 @@ import syntaxOptionalCatchBinding from "@babel/plugin-syntax-optional-catch-bind
 import syntaxOptionalChaining from "@babel/plugin-syntax-optional-chaining";
 import syntaxPrivatePropertyInObject from "@babel/plugin-syntax-private-property-in-object";
 import syntaxTopLevelAwait from "@babel/plugin-syntax-top-level-await";
-import proposalAsyncGeneratorFunctions from "@babel/plugin-proposal-async-generator-functions";
-import proposalClassProperties from "@babel/plugin-proposal-class-properties";
-import proposalClassStaticBlock from "@babel/plugin-proposal-class-static-block";
-import proposalDynamicImport from "@babel/plugin-proposal-dynamic-import";
-import proposalExportNamespaceFrom from "@babel/plugin-proposal-export-namespace-from";
-import proposalJsonStrings from "@babel/plugin-proposal-json-strings";
-import proposalLogicalAssignmentOperators from "@babel/plugin-proposal-logical-assignment-operators";
-import proposalNullishCoalescingOperator from "@babel/plugin-proposal-nullish-coalescing-operator";
-import proposalNumericSeparator from "@babel/plugin-proposal-numeric-separator";
-import proposalObjectRestSpread from "@babel/plugin-proposal-object-rest-spread";
-import proposalOptionalCatchBinding from "@babel/plugin-proposal-optional-catch-binding";
-import proposalOptionalChaining from "@babel/plugin-proposal-optional-chaining";
-import proposalPrivateMethods from "@babel/plugin-proposal-private-methods";
-import proposalPrivatePropertyInObject from "@babel/plugin-proposal-private-property-in-object";
-import proposalUnicodePropertyRegex from "@babel/plugin-proposal-unicode-property-regex";
+import proposalAsyncGeneratorFunctions from "@babel/plugin-transform-async-generator-functions";
+import proposalClassProperties from "@babel/plugin-transform-class-properties";
+import proposalClassStaticBlock from "@babel/plugin-transform-class-static-block";
+import proposalDynamicImport from "@babel/plugin-transform-dynamic-import";
+import proposalExportNamespaceFrom from "@babel/plugin-transform-export-namespace-from";
+import proposalJsonStrings from "@babel/plugin-transform-json-strings";
+import proposalLogicalAssignmentOperators from "@babel/plugin-transform-logical-assignment-operators";
+import proposalNullishCoalescingOperator from "@babel/plugin-transform-nullish-coalescing-operator";
+import proposalNumericSeparator from "@babel/plugin-transform-numeric-separator";
+import proposalObjectRestSpread from "@babel/plugin-transform-object-rest-spread";
+import proposalOptionalCatchBinding from "@babel/plugin-transform-optional-catch-binding";
+import proposalOptionalChaining from "@babel/plugin-transform-optional-chaining";
+import proposalPrivateMethods from "@babel/plugin-transform-private-methods";
+import proposalPrivatePropertyInObject from "@babel/plugin-transform-private-property-in-object";
+import proposalUnicodePropertyRegex from "@babel/plugin-transform-unicode-property-regex";
 import transformAsyncToGenerator from "@babel/plugin-transform-async-to-generator";
 import transformArrowFunctions from "@babel/plugin-transform-arrow-functions";
 import transformBlockScopedFunctions from "@babel/plugin-transform-block-scoped-functions";
@@ -90,6 +91,7 @@ export default {
   "syntax-dynamic-import": () => syntaxDynamicImport,
   "syntax-export-namespace-from": () => syntaxExportNamespaceFrom,
   "syntax-import-assertions": () => syntaxImportAssertions,
+  "syntax-import-attributes": () => syntaxImportAttributes,
   "syntax-import-meta": () => syntaxImportMeta,
   "syntax-json-strings": () => syntaxJsonStrings,
   "syntax-logical-assignment-operators": () => syntaxLogicalAssignmentOperators,
@@ -156,6 +158,7 @@ export default {
 export const minVersions = {
   "bugfix/transform-safari-id-destructuring-collision-in-function-expression":
     "7.16.0",
+  "syntax-import-attributes": "7.21.0",
   "transform-class-static-block": "7.12.0",
   "transform-private-property-in-object": "7.10.0",
 };

@@ -1155,6 +1155,8 @@ defineType("VariableDeclaration", {
         "const",
         // https://github.com/tc39/proposal-explicit-resource-management
         "using",
+        // https://github.com/tc39/proposal-async-explicit-resource-management
+        "await using",
       ),
     },
     declarations: {
@@ -1495,6 +1497,14 @@ defineType("ExportAllDeclaration", {
       validate: assertNodeType("StringLiteral"),
     },
     exportKind: validateOptional(assertOneOf("type", "value")),
+    attributes: {
+      optional: true,
+      validate: chain(
+        assertValueType("array"),
+        assertEach(assertNodeType("ImportAttribute")),
+      ),
+    },
+    // TODO(Babel 8): Deprecated
     assertions: {
       optional: true,
       validate: chain(
@@ -1566,6 +1576,14 @@ defineType("ExportNamedDeclaration", {
         },
       ),
     },
+    attributes: {
+      optional: true,
+      validate: chain(
+        assertValueType("array"),
+        assertEach(assertNodeType("ImportAttribute")),
+      ),
+    },
+    // TODO(Babel 8): Deprecated
     assertions: {
       optional: true,
       validate: chain(
@@ -1677,6 +1695,14 @@ defineType("ImportDeclaration", {
   visitor: ["specifiers", "source"],
   aliases: ["Statement", "Declaration", "ImportOrExportDeclaration"],
   fields: {
+    attributes: {
+      optional: true,
+      validate: chain(
+        assertValueType("array"),
+        assertEach(assertNodeType("ImportAttribute")),
+      ),
+    },
+    // TODO(Babel 8): Deprecated
     assertions: {
       optional: true,
       validate: chain(
