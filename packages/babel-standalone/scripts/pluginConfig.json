@@ -63,7 +63,7 @@
     "proposal-regexp-modifiers",
     "proposal-throw-expressions",
     "transform-unicode-property-regex",
-    "proposal-unicode-sets-regex",
+    "transform-unicode-sets-regex",
     "transform-async-to-generator",
     "transform-arrow-functions",
     "transform-block-scoped-functions",
@@ -114,6 +114,7 @@
     "transform-typeof-symbol",
     "transform-typescript",
     "transform-unicode-escapes",
-    "transform-unicode-regex"
+    "transform-unicode-regex",
+    "proposal-explicit-resource-management"
   ]
 }

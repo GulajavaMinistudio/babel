@@ -285,7 +285,7 @@ __metadata:
   resolution: "@babel/compat-data@workspace:packages/babel-compat-data"
   dependencies:
     "@mdn/browser-compat-data": ^4.0.10
-    core-js-compat: ^3.25.1
+    core-js-compat: ^3.30.2
     electron-to-chromium: ^1.4.248
   languageName: unknown
   linkType: soft
@@ -631,7 +631,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/helper-create-regexp-features-plugin@workspace:^, @babel/helper-create-regexp-features-plugin@workspace:packages/babel-helper-create-regexp-features-plugin":
+"@babel/helper-create-regexp-features-plugin@workspace:*, @babel/helper-create-regexp-features-plugin@workspace:^, @babel/helper-create-regexp-features-plugin@workspace:packages/babel-helper-create-regexp-features-plugin":
   version: 0.0.0-use.local
   resolution: "@babel/helper-create-regexp-features-plugin@workspace:packages/babel-helper-create-regexp-features-plugin"
   dependencies:
@@ -658,6 +658,22 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.4.0-0
   checksum: 8e3fe75513302e34f6d92bd67b53890e8545e6c5bca8fe757b9979f09d68d7e259f6daea90dc9e01e332c4f8781bda31c5fe551c82a277f9bc0bec007aed497c
+  languageName: node
+  linkType: hard
+
+"@babel/helper-define-polyfill-provider@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@babel/helper-define-polyfill-provider@npm:0.4.0"
+  dependencies:
+    "@babel/helper-compilation-targets": ^7.17.7
+    "@babel/helper-plugin-utils": ^7.16.7
+    debug: ^4.1.1
+    lodash.debounce: ^4.0.8
+    resolve: ^1.14.2
+    semver: ^6.1.2
+  peerDependencies:
+    "@babel/core": ^7.4.0-0
+  checksum: 5dca4c5e78457c5ced366bea601efa4e8c69bf5d53b0fe540283897575c49b1b88191c8ef062110de9046e886703ed3270fcda3a87f0886cdbb549204d3ff63f
   languageName: node
   linkType: hard
 
@@ -1089,7 +1105,7 @@ __metadata:
     "@babel/runtime": "workspace:^"
     "@types/v8flags": ^3.1.1
     commander: ^4.0.1
-    core-js: ^3.26.0
+    core-js: ^3.30.2
     fs-readdir-recursive: ^1.0.0
     make-dir: "condition:BABEL_8_BREAKING ? : ^2.1.0"
     node-environment-flags: ^1.0.5
@@ -1285,7 +1301,7 @@ __metadata:
     "@babel/traverse": "workspace:^"
     "@types/charcodes": ^0.2.0
     array.prototype.concat: ^1.0.2
-    babel-plugin-polyfill-es-shims: ^0.7.1
+    babel-plugin-polyfill-es-shims: ^0.9.0
     charcodes: ^0.2.0
     object.getownpropertydescriptors: ^2.1.1
   peerDependencies:
@@ -1331,7 +1347,7 @@ __metadata:
     "@babel/helper-create-regexp-features-plugin": "workspace:^"
     "@babel/helper-plugin-test-runner": "workspace:^"
     "@babel/helper-plugin-utils": "workspace:^"
-    core-js: ^3.26.0
+    core-js: ^3.30.2
   peerDependencies:
     "@babel/core": ^7.0.0
   languageName: unknown
@@ -1348,6 +1364,19 @@ __metadata:
   checksum: 96b1c8a8ad8171d39e9ab106be33bde37ae09b22fb2c449afee9a5edf3c537933d79d963dcdc2694d10677cb96da739cdf1b53454e6a5deab9801f28a818bb2f
   languageName: node
   linkType: hard
+
+"@babel/plugin-proposal-explicit-resource-management@workspace:^, @babel/plugin-proposal-explicit-resource-management@workspace:packages/babel-plugin-proposal-explicit-resource-management":
+  version: 0.0.0-use.local
+  resolution: "@babel/plugin-proposal-explicit-resource-management@workspace:packages/babel-plugin-proposal-explicit-resource-management"
+  dependencies:
+    "@babel/core": "workspace:^"
+    "@babel/helper-plugin-test-runner": "workspace:^"
+    "@babel/helper-plugin-utils": "workspace:^"
+    "@babel/plugin-syntax-explicit-resource-management": "workspace:^"
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  languageName: unknown
+  linkType: soft
 
 "@babel/plugin-proposal-export-default-from@workspace:^, @babel/plugin-proposal-export-default-from@workspace:packages/babel-plugin-proposal-export-default-from":
   version: 0.0.0-use.local
@@ -1605,19 +1634,6 @@ __metadata:
   checksum: a8575ecb7ff24bf6c6e94808d5c84bb5a0c6dd7892b54f09f4646711ba0ee1e1668032b3c43e3e1dfec2c5716c302e851ac756c1645e15882d73df6ad21ae951
   languageName: node
   linkType: hard
-
-"@babel/plugin-proposal-unicode-sets-regex@workspace:^, @babel/plugin-proposal-unicode-sets-regex@workspace:packages/babel-plugin-proposal-unicode-sets-regex":
-  version: 0.0.0-use.local
-  resolution: "@babel/plugin-proposal-unicode-sets-regex@workspace:packages/babel-plugin-proposal-unicode-sets-regex"
-  dependencies:
-    "@babel/core": "workspace:^"
-    "@babel/helper-create-regexp-features-plugin": "workspace:^"
-    "@babel/helper-plugin-test-runner": "workspace:^"
-    "@babel/helper-plugin-utils": "workspace:^"
-  peerDependencies:
-    "@babel/core": ^7.0.0
-  languageName: unknown
-  linkType: soft
 
 "@babel/plugin-syntax-async-do-expressions@workspace:^, @babel/plugin-syntax-async-do-expressions@workspace:packages/babel-plugin-syntax-async-do-expressions":
   version: 0.0.0-use.local
@@ -2046,6 +2062,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@babel/plugin-syntax-unicode-sets-regex@npm:^7.18.6":
+  version: 7.18.6
+  resolution: "@babel/plugin-syntax-unicode-sets-regex@npm:7.18.6"
+  dependencies:
+    "@babel/helper-create-regexp-features-plugin": ^7.18.6
+    "@babel/helper-plugin-utils": ^7.18.6
+  peerDependencies:
+    "@babel/core": ^7.0.0
+  checksum: a651d700fe63ff0ddfd7186f4ebc24447ca734f114433139e3c027bc94a900d013cf1ef2e2db8430425ba542e39ae160c3b05f06b59fd4656273a3df97679e9c
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-transform-arrow-functions@npm:^7.18.6":
   version: 7.20.7
   resolution: "@babel/plugin-transform-arrow-functions@npm:7.20.7"
@@ -2081,8 +2109,8 @@ __metadata:
     "@babel/helper-plugin-utils": "workspace:^"
     "@babel/helper-remap-async-to-generator": "workspace:^"
     "@babel/plugin-syntax-async-generators": ^7.8.4
-    babel-plugin-polyfill-corejs3: ^0.6.0
-    core-js-pure: ^3.25.1
+    babel-plugin-polyfill-corejs3: ^0.8.1
+    core-js-pure: ^3.30.2
   peerDependencies:
     "@babel/core": ^7.0.0-0
   languageName: unknown
@@ -2686,7 +2714,7 @@ __metadata:
     "@babel/helper-create-regexp-features-plugin": "workspace:^"
     "@babel/helper-plugin-test-runner": "workspace:^"
     "@babel/helper-plugin-utils": "workspace:^"
-    core-js: ^3.26.0
+    core-js: ^3.30.2
   peerDependencies:
     "@babel/core": ^7.0.0
   languageName: unknown
@@ -3133,9 +3161,9 @@ __metadata:
     "@babel/runtime-corejs3": "workspace:^"
     "@babel/template": "workspace:^"
     "@babel/types": "workspace:^"
-    babel-plugin-polyfill-corejs2: ^0.3.3
-    babel-plugin-polyfill-corejs3: ^0.6.0
-    babel-plugin-polyfill-regenerator: ^0.4.1
+    babel-plugin-polyfill-corejs2: ^0.4.1
+    babel-plugin-polyfill-corejs3: ^0.8.1
+    babel-plugin-polyfill-regenerator: ^0.5.0
     make-dir: "condition:BABEL_8_BREAKING ? : ^2.1.0"
     semver: "condition:BABEL_8_BREAKING ? ^7.3.4 : ^6.3.0"
   peerDependencies:
@@ -3366,6 +3394,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@babel/plugin-transform-unicode-sets-regex@workspace:^, @babel/plugin-transform-unicode-sets-regex@workspace:packages/babel-plugin-transform-unicode-sets-regex":
+  version: 0.0.0-use.local
+  resolution: "@babel/plugin-transform-unicode-sets-regex@workspace:packages/babel-plugin-transform-unicode-sets-regex"
+  dependencies:
+    "@babel/core": "workspace:^"
+    "@babel/helper-create-regexp-features-plugin": "workspace:^"
+    "@babel/helper-plugin-test-runner": "workspace:^"
+    "@babel/helper-plugin-utils": "workspace:^"
+  peerDependencies:
+    "@babel/core": ^7.0.0
+  languageName: unknown
+  linkType: soft
+
 "@babel/preset-env@npm:^7.20.2":
   version: 7.20.2
   resolution: "@babel/preset-env@npm:7.20.2"
@@ -3481,6 +3522,7 @@ __metadata:
     "@babel/plugin-syntax-optional-chaining": ^7.8.3
     "@babel/plugin-syntax-private-property-in-object": ^7.14.5
     "@babel/plugin-syntax-top-level-await": ^7.14.5
+    "@babel/plugin-syntax-unicode-sets-regex": ^7.18.6
     "@babel/plugin-transform-arrow-functions": "workspace:^"
     "@babel/plugin-transform-async-generator-functions": "workspace:^"
     "@babel/plugin-transform-async-to-generator": "workspace:^"
@@ -3528,13 +3570,14 @@ __metadata:
     "@babel/plugin-transform-unicode-escapes": "workspace:^"
     "@babel/plugin-transform-unicode-property-regex": "workspace:^"
     "@babel/plugin-transform-unicode-regex": "workspace:^"
+    "@babel/plugin-transform-unicode-sets-regex": "workspace:^"
     "@babel/preset-modules": ^0.1.5
     "@babel/traverse": "workspace:^"
     "@babel/types": "workspace:^"
-    babel-plugin-polyfill-corejs2: ^0.3.3
-    babel-plugin-polyfill-corejs3: ^0.6.0
-    babel-plugin-polyfill-regenerator: ^0.4.1
-    core-js-compat: ^3.25.1
+    babel-plugin-polyfill-corejs2: ^0.4.1
+    babel-plugin-polyfill-corejs3: ^0.8.1
+    babel-plugin-polyfill-regenerator: ^0.5.0
+    core-js-compat: ^3.30.2
     semver: "condition:BABEL_8_BREAKING ? ^7.3.4 : ^6.3.0"
   peerDependencies:
     "@babel/core": ^7.0.0-0
@@ -3654,7 +3697,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@babel/runtime-corejs3@workspace:packages/babel-runtime-corejs3"
   dependencies:
-    core-js-pure: ^3.25.1
+    core-js-pure: ^3.30.2
     regenerator-runtime: ^0.13.11
   languageName: unknown
   linkType: soft
@@ -3686,6 +3729,7 @@ __metadata:
     "@babel/plugin-proposal-destructuring-private": "workspace:^"
     "@babel/plugin-proposal-do-expressions": "workspace:^"
     "@babel/plugin-proposal-duplicate-named-capturing-groups-regex": "workspace:^"
+    "@babel/plugin-proposal-explicit-resource-management": "workspace:^"
     "@babel/plugin-proposal-export-default-from": "workspace:^"
     "@babel/plugin-proposal-function-bind": "workspace:^"
     "@babel/plugin-proposal-function-sent": "workspace:^"
@@ -3693,7 +3737,6 @@ __metadata:
     "@babel/plugin-proposal-record-and-tuple": "workspace:^"
     "@babel/plugin-proposal-regexp-modifiers": "workspace:^"
     "@babel/plugin-proposal-throw-expressions": "workspace:^"
-    "@babel/plugin-proposal-unicode-sets-regex": "workspace:^"
     "@babel/plugin-syntax-decimal": "workspace:^"
     "@babel/plugin-syntax-decorators": "workspace:^"
     "@babel/plugin-syntax-destructuring-private": "workspace:^"
@@ -3777,6 +3820,7 @@ __metadata:
     "@babel/plugin-transform-unicode-escapes": "workspace:^"
     "@babel/plugin-transform-unicode-property-regex": "workspace:^"
     "@babel/plugin-transform-unicode-regex": "workspace:^"
+    "@babel/plugin-transform-unicode-sets-regex": "workspace:^"
     "@babel/preset-env": "workspace:^"
     "@babel/preset-flow": "workspace:^"
     "@babel/preset-react": "workspace:^"
@@ -6016,6 +6060,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"babel-plugin-polyfill-corejs2@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "babel-plugin-polyfill-corejs2@npm:0.4.1"
+  dependencies:
+    "@babel/compat-data": ^7.17.7
+    "@babel/helper-define-polyfill-provider": ^0.4.0
+    semver: ^6.1.1
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: f2b9bfec71914899b6e028441db565e1a2f2bc8208738c0fd7093e36fa6232cb803577751a745a0a30484928fcff65b3dad2c124bf9d956c3de19c26a1355a5e
+  languageName: node
+  linkType: hard
+
 "babel-plugin-polyfill-corejs3@npm:^0.6.0":
   version: 0.6.0
   resolution: "babel-plugin-polyfill-corejs3@npm:0.6.0"
@@ -6028,14 +6085,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-plugin-polyfill-es-shims@npm:^0.7.1":
-  version: 0.7.1
-  resolution: "babel-plugin-polyfill-es-shims@npm:0.7.1"
+"babel-plugin-polyfill-corejs3@npm:^0.8.1":
+  version: 0.8.1
+  resolution: "babel-plugin-polyfill-corejs3@npm:0.8.1"
   dependencies:
-    "@babel/helper-define-polyfill-provider": ^0.3.3
+    "@babel/helper-define-polyfill-provider": ^0.4.0
+    core-js-compat: ^3.30.1
   peerDependencies:
     "@babel/core": ^7.0.0-0
-  checksum: d7c6329d785d522fc68ee96187fc9e540445125a5a034563a3153d34810b58a7ae9a18cf3cd305085250f29ba382f9470eaec0876da73e05ae3b4c7754502bcc
+  checksum: c23a581973c141a4687126cf964981180ef27e3eb0b34b911161db4f5caf9ba7ff60bee0ebe46d650ba09e03a6a3ac2cd6a6ae5f4f5363a148470e5cd8447df2
+  languageName: node
+  linkType: hard
+
+"babel-plugin-polyfill-es-shims@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "babel-plugin-polyfill-es-shims@npm:0.9.0"
+  dependencies:
+    "@babel/helper-define-polyfill-provider": ^0.4.0
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 771408849b7c969bd2aea4cf30466c5078069ed1c17e54302b4b59afd7d73178082d7b150b0dea41e2e99ae05eef1b76badd58b770735fcabcb7a187240083c3
   languageName: node
   linkType: hard
 
@@ -6047,6 +6116,17 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0-0
   checksum: ab0355efbad17d29492503230387679dfb780b63b25408990d2e4cf421012dae61d6199ddc309f4d2409ce4e9d3002d187702700dd8f4f8770ebbba651ed066c
+  languageName: node
+  linkType: hard
+
+"babel-plugin-polyfill-regenerator@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "babel-plugin-polyfill-regenerator@npm:0.5.0"
+  dependencies:
+    "@babel/helper-define-polyfill-provider": ^0.4.0
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: ef2bcffc7c9a5e4426fc2dbf89bf3a46999a8415c21cd741c3ab3cb4b5ab804aaa3d71ef733f0eda1bcc0b91d9d80f98d33983a66dab9b8bed166ec38f8f8ad1
   languageName: node
   linkType: hard
 
@@ -6126,7 +6206,7 @@ __metadata:
     c8: ^7.12.0
     chalk: ^5.0.0
     charcodes: ^0.2.0
-    core-js: ^3.26.0
+    core-js: ^3.30.2
     eslint: ^8.22.0
     eslint-formatter-codeframe: ^7.32.1
     eslint-import-resolver-node: ^0.3.6
@@ -7220,10 +7300,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js-pure@npm:^3.25.1":
-  version: 3.25.1
-  resolution: "core-js-pure@npm:3.25.1"
-  checksum: 0123131ec7ab3a1e56f0b4df4ae659de03d9c245ce281637d4d0f18f9839d8e0cfbfa989bd577ce1b67826f889a7dcc734421f697cf1bbe59f605f29c537a678
+"core-js-pure@npm:^3.30.2":
+  version: 3.30.2
+  resolution: "core-js-pure@npm:3.30.2"
+  checksum: e0e012fe94e38663d837410baac62efe05d0c7431e3fbaa70c65f51eb980da9c3add225eca04208d576bc0d92cefeca9a4f7671a65fd84fd7dfc92d8618dddfd
   languageName: node
   linkType: hard
 
@@ -7234,10 +7314,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.26.0":
-  version: 3.26.0
-  resolution: "core-js@npm:3.26.0"
-  checksum: 0149eb9d3909fde9c17626af3a6e625c326e8598d0bb5e6c5b48a18e5fcd4eaf48d4964d873667d8148542ff590fb98eb3f93618da114ca54999d6bc0349734b
+"core-js@npm:^3.30.2":
+  version: 3.30.2
+  resolution: "core-js@npm:3.30.2"
+  checksum: 73d47e2b9d9f502800973982d08e995bbf04832e20b04e04be31dd7607247158271315e9328788a2408190e291c7ffbefad141167b1e57dea9f983e1e723541e
   languageName: node
   linkType: hard
 
