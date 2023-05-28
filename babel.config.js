@@ -179,9 +179,9 @@ module.exports = function (api) {
       ],
     ],
     plugins: [
-      ["@babel/proposal-object-rest-spread", { useBuiltIns: true }],
+      ["@babel/transform-object-rest-spread", { useBuiltIns: true }],
 
-      convertESM ? "@babel/proposal-export-namespace-from" : null,
+      convertESM ? "@babel/transform-export-namespace-from" : null,
 
       pluginPackageJsonMacro,
 
@@ -214,7 +214,7 @@ module.exports = function (api) {
       convertESM && {
         test: ["./packages/babel-node/src"].map(normalize),
         // Used to conditionally import kexec
-        plugins: ["@babel/plugin-proposal-dynamic-import"],
+        plugins: ["@babel/plugin-transform-dynamic-import"],
       },
       {
         test: sources.map(normalize),
@@ -653,6 +653,10 @@ function transformNamedBabelTypesImportToDestructuring({
   };
 }
 
+/**
+ * @param {import("@babel/core")} pluginAPI
+ * @returns {import("@babel/core").PluginObj}
+ */
 function pluginImportMetaUrl({ types: t, template }) {
   const isImportMeta = node =>
     t.isMetaProperty(node) &&
@@ -675,23 +679,50 @@ function pluginImportMetaUrl({ types: t, template }) {
             const { node } = path;
 
             if (
-              !t.isIdentifier(node.callee, { name: "fileURLToPath" }) ||
+              (function () {
+                if (
+                  !t.isIdentifier(node.callee, {
+                    name: "fileURLToPath",
+                  }) ||
+                  node.arguments.length !== 1
+                ) {
+                  return;
+                }
+
+                const arg = node.arguments[0];
+
+                if (
+                  !t.isMemberExpression(arg, {
+                    computed: false,
+                  }) ||
+                  !t.isIdentifier(arg.property, {
+                    name: "url",
+                  }) ||
+                  !isImportMeta(arg.object)
+                ) {
+                  return;
+                }
+                path.replaceWith(t.identifier("__filename"));
+                return true;
+              })()
+            ) {
+              return;
+            }
+
+            if (
+              !t.isIdentifier(node.callee, { name: "commonJS" }) ||
               node.arguments.length !== 1
             ) {
               return;
             }
 
-            const arg = node.arguments[0];
+            const binding = path.scope.getBinding("commonJS");
+            if (!binding) return;
 
-            if (
-              !t.isMemberExpression(arg, { computed: false }) ||
-              !t.isIdentifier(arg.property, { name: "url" }) ||
-              !isImportMeta(arg.object)
-            ) {
-              return;
+            if (binding.path.isImportSpecifier()) {
+              path.parentPath.parentPath.assertVariableDeclaration();
+              path.parentPath.parentPath.remove();
             }
-
-            path.replaceWith(t.identifier("__filename"));
           },
 
           // const require = createRequire(import.meta.url)
