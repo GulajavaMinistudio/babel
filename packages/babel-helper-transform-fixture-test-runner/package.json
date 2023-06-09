@@ -1,6 +1,6 @@
 {
   "name": "@babel/helper-transform-fixture-test-runner",
-  "version": "7.22.3",
+  "version": "7.22.5",
   "description": "Transform test runner for @babel/helper-fixtures module",
   "author": "The Babel Team (https://babel.dev/team)",
   "homepage": "https://babel.dev/docs/en/next/babel-helper-transform-fixture-test-runner",
@@ -20,9 +20,6 @@
     "@babel/helper-check-duplicate-nodes": "workspace:^",
     "@babel/helper-fixtures": "workspace:^",
     "quick-lru": "5.1.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^27.4.1"
   },
   "engines": {
     "node": ">=6.9.0"
