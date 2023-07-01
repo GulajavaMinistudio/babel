@@ -63,7 +63,7 @@ export default Object.freeze({
   ),
   dispose: helper(
     "7.22.0",
-    'function dispose_SuppressedError(suppressed,error){return"undefined"!=typeof SuppressedError?dispose_SuppressedError=SuppressedError:(dispose_SuppressedError=function(suppressed,error){this.suppressed=suppressed,this.error=error,this.stack=(new Error).stack},dispose_SuppressedError.prototype=Object.create(Error.prototype,{constructor:{value:dispose_SuppressedError,writable:!0,configurable:!0}})),new dispose_SuppressedError(suppressed,error)}export default function _dispose(stack,error,hasError){function next(){if(0!==stack.length){var r=stack.pop();if(r.a)return Promise.resolve(r.d.call(r.v)).then(next,err);try{r.d.call(r.v)}catch(e){return err(e)}return next()}if(hasError)throw error}function err(e){return error=hasError?new dispose_SuppressedError(e,error):e,hasError=!0,next()}return next()}',
+    'function dispose_SuppressedError(suppressed,error){return"undefined"!=typeof SuppressedError?dispose_SuppressedError=SuppressedError:(dispose_SuppressedError=function(suppressed,error){this.suppressed=suppressed,this.error=error,this.stack=(new Error).stack},dispose_SuppressedError.prototype=Object.create(Error.prototype,{constructor:{value:dispose_SuppressedError,writable:!0,configurable:!0}})),new dispose_SuppressedError(suppressed,error)}export default function _dispose(stack,error,hasError){function next(){for(;stack.length>0;)try{var r=stack.pop(),p=r.d.call(r.v);if(r.a)return Promise.resolve(p).then(next,err)}catch(e){return err(e)}if(hasError)throw error}function err(e){return error=hasError?new dispose_SuppressedError(e,error):e,hasError=!0,next()}return next()}',
   ),
   iterableToArrayLimit: helper(
     "7.0.0-beta.0",
@@ -91,7 +91,7 @@ export default Object.freeze({
   ),
   using: helper(
     "7.22.0",
-    'export default function _using(stack,value,isAwait){if(null==value)return value;if("object"!=typeof value)throw new TypeError("using decarations can only be used with objects, null, or undefined.");if(isAwait)var dispose=value[Symbol.asyncDispose||Symbol.for("Symbol.asyncDispose")];if(null==dispose&&(dispose=value[Symbol.dispose||Symbol.for("Symbol.dispose")]),"function"!=typeof dispose)throw new TypeError("Property [Symbol.dispose] is not a function.");return stack.push({v:value,d:dispose,a:isAwait}),value}',
+    'export default function _using(stack,value,isAwait){if(null==value)return value;if("object"!=typeof value)throw new TypeError("using declarations can only be used with objects, null, or undefined.");if(isAwait)var dispose=value[Symbol.asyncDispose||Symbol.for("Symbol.asyncDispose")];if(null==dispose&&(dispose=value[Symbol.dispose||Symbol.for("Symbol.dispose")]),"function"!=typeof dispose)throw new TypeError("Property [Symbol.dispose] is not a function.");return stack.push({v:value,d:dispose,a:isAwait}),value}',
   ),
   wrapRegExp: helper(
     "7.19.0",
