@@ -121,6 +121,9 @@ target["clean-lib"] = function () {
     "-rf",
     SOURCES.map(source => `${source}/*/lib`)
   );
+
+  // re-generate the necessary lib/package.json files
+  node(["scripts/set-module-type.js"]);
 };
 
 target["clean-runtime-helpers"] = function () {
@@ -184,7 +187,6 @@ target["build-bundle"] = function () {
 
   yarn(["gulp", "build"]);
 
-  target["build-flow-typings"]();
   target["build-dist"]();
 };
 
@@ -201,7 +203,6 @@ target["build-no-bundle"] = function () {
     { BABEL_ENV: "development" }
   );
 
-  target["build-flow-typings"]();
   target["build-dist"]();
 };
 
@@ -262,6 +263,7 @@ target["prepublish-build"] = function () {
       target["prepublish-build-standalone"]();
       target["clone-license"]();
       target["prepublish-prepare-dts"]();
+      target["build-flow-typings"]();
     },
     {
       NODE_ENV: "production",
