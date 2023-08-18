@@ -1,5 +1,5 @@
 FLOW_COMMIT = 105ad30f566f401db9cafcb49cd2831fb29e87c5
-TEST262_COMMIT = 21c3097f92b244bfa2ae54ee9cf745839567b79a
+TEST262_COMMIT = 0c87a86b58391b40aa7623b919603d87d4b77a4d
 TYPESCRIPT_COMMIT = d87d0adcd30ac285393bf3bfbbb4d94d50c4f3c9
 
 SOURCES = packages codemods eslint
@@ -185,6 +185,12 @@ new-version:
 
 new-babel-8-version:
 	$(MAKEJS) new-babel-8-version
+
+new-babel-8-version-create-commit:
+	$(MAKEJS) new-babel-8-version-create-commit
+
+new-babel-8-version-create-commit-ci:
+	$(MAKEJS) new-babel-8-version-create-commit-ci
 
 # NOTE: Run make new-version first
 publish:

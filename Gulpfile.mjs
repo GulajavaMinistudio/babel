@@ -18,7 +18,7 @@ import rollupJson from "@rollup/plugin-json";
 import rollupPolyfillNode from "rollup-plugin-polyfill-node";
 import rollupNodeResolve from "@rollup/plugin-node-resolve";
 import rollupReplace from "@rollup/plugin-replace";
-import { terser as rollupTerser } from "rollup-plugin-terser";
+import rollupTerser from "@rollup/plugin-terser";
 import rollupDts from "rollup-plugin-dts";
 import { Worker as JestWorker } from "jest-worker";
 import { Glob } from "glob";
@@ -264,7 +264,7 @@ function createWorker(useWorker) {
 async function buildBabel(useWorker, ignore = []) {
   const worker = createWorker(useWorker);
   const files = new Glob(defaultSourcesGlob, {
-    ignore: ignore.map(p => `./${p.src}/**`),
+    ignore: ignore.map(p => `${p.src}/**`),
     posix: true,
   });
 
@@ -364,14 +364,16 @@ function buildRollup(packages, buildStandalone) {
                 // https://github.com/babel/babel-polyfills/blob/4ac92be5b70b13e3d8a34614d8ecd900eb3f40e4/packages/babel-helper-define-polyfill-provider/src/types.js#L5
                 // We can safely ignore this warning, and let Rollup replace it with undefined.
                 if (
-                  warning.exporter === "packages/babel-core/src/index.ts" &&
-                  warning.missing === "default" &&
+                  warning.exporter
+                    .replace(/\\/g, "/")
+                    .endsWith("packages/babel-core/src/index.ts") &&
+                  warning.binding === "default" &&
                   [
                     "@babel/helper-define-polyfill-provider",
                     "babel-plugin-polyfill-corejs2",
                     "babel-plugin-polyfill-corejs3",
                     "babel-plugin-polyfill-regenerator",
-                  ].some(pkg => warning.importer.includes(pkg))
+                  ].some(pkg => warning.id.replace(/\\/g, "/").includes(pkg))
                 ) {
                   return;
                 }
@@ -417,7 +419,7 @@ function buildRollup(packages, buildStandalone) {
                   "./packages/babel-helper-create-regexp-features-plugin",
                   "regexpu-core",
                   "regenerate-unicode-properties"
-                ) + "/**/*.js",
+                ).replace(/\\/g, "/") + "/**/*.js", // Must be posix path in rollup 3
               ],
               // Never delegate to the native require()
               ignoreDynamicRequires: false,
@@ -515,22 +517,22 @@ function buildRollup(packages, buildStandalone) {
             // We have manually applied commonjs-esm interop to the source
             // for library not in this monorepo
             // https://github.com/babel/babel/pull/12795
-            if (!id.startsWith("@babel/")) return false;
+            if (!id.startsWith("@babel/")) return "compat";
 
             // Some syntax plugins have been archived
             if (id.includes("plugin-syntax")) {
-              const srcPath = new URL(
-                "./packages/" + id.replace("@babel/", "babel-"),
-                import.meta.url
+              const srcPath = path.join(
+                path.dirname(fileURLToPath(import.meta.url)),
+                "/packages/" + id.replace("@babel/", "babel-")
               );
-              if (!fs.existsSync(srcPath)) return false;
+              if (!fs.existsSync(srcPath)) return "compat";
             }
 
             if (id.includes("@babel/preset-modules")) {
-              return false;
+              return "compat";
             }
 
-            return true;
+            return "auto";
           },
         });
 
@@ -554,16 +556,17 @@ function buildRollup(packages, buildStandalone) {
         await bundle.write({
           file: outputFile.replace(/\.js$/, ".min.js"),
           format,
+          interop: "compat",
           name,
           sourcemap: sourcemap,
           exports: "named",
           plugins: [
             rollupTerser({
               // workaround https://bugs.webkit.org/show_bug.cgi?id=212725
-              output: {
+              format: {
                 ascii_only: true,
               },
-              numWorkers: process.env.CIRCLECI ? 1 : undefined,
+              maxWorkers: process.env.CIRCLECI ? 1 : undefined,
             }),
           ],
         });
@@ -837,6 +840,7 @@ gulp.task("build-cjs-bundles", () => {
       await bundle.write({
         file: output,
         format: "cjs",
+        interop: "compat",
         sourcemap: false,
       });
     })
