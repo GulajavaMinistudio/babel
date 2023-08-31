@@ -244,6 +244,14 @@ module.exports = function (api) {
             { name: "IS_STANDALONE", value: env === "standalone" },
             "flag-IS_STANDALONE",
           ],
+          [
+            pluginToggleBooleanFlag,
+            {
+              name: "USE_ESM_OR_STANDALONE",
+              value: outputType === "module" || env === "standalone",
+            },
+            "flag-USE_ESM_OR_STANDALONE",
+          ],
 
           [
             pluginToggleBooleanFlag,
@@ -688,10 +696,10 @@ function pluginImportMetaUrl({ types: t, template }) {
         // We must be sure to run this before the istanbul plugins, because its
         // instrumentation breaks our detection.
         programPath.traverse({
-          // fileURLToPath(import.meta.url)
           CallExpression(path) {
             const { node } = path;
 
+            // fileURLToPath(import.meta.url)
             if (
               (function () {
                 if (
@@ -723,6 +731,7 @@ function pluginImportMetaUrl({ types: t, template }) {
               return;
             }
 
+            // const { __dirname: cwd } = commonJS(import.meta.url)
             if (
               !t.isIdentifier(node.callee, { name: "commonJS" }) ||
               node.arguments.length !== 1
