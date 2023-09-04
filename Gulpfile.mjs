@@ -20,6 +20,7 @@ import rollupNodeResolve from "@rollup/plugin-node-resolve";
 import rollupReplace from "@rollup/plugin-replace";
 import rollupTerser from "@rollup/plugin-terser";
 import rollupDts from "rollup-plugin-dts";
+import rollupDts5 from "rollup-plugin-dts-5";
 import { Worker as JestWorker } from "jest-worker";
 import { Glob } from "glob";
 import { resolve as importMetaResolve } from "import-meta-resolve";
@@ -182,7 +183,7 @@ function generateStandalone() {
       through.obj(async (file, enc, callback) => {
         log("Generating @babel/standalone files");
         const pluginConfig = JSON.parse(file.contents);
-        let imports = `import makeNoopPlugin from "../make-noop-plugin";`;
+        let imports = `import makeNoopPlugin from "../make-noop-plugin.ts";`;
         let exportDecls = "";
         let exportsList = "";
         let allList = "";
@@ -581,7 +582,9 @@ function buildRollupDts(packages) {
 
     const bundle = await rollup({
       input,
-      plugins: [rollupDts()],
+      plugins: [
+        bool(process.env.BABEL_8_BREAKING) ? rollupDts() : rollupDts5(),
+      ],
     });
 
     await bundle.write({

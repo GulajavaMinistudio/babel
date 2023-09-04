@@ -1,5 +1,5 @@
-import type { ParseErrorTemplates } from "../parse-error";
-import toNodeDescription from "./to-node-description";
+import type { ParseErrorTemplates } from "../parse-error.ts";
+import toNodeDescription from "./to-node-description.ts";
 
 export type LValAncestor =
   | { type: "UpdateExpression"; prefix: boolean }
@@ -164,8 +164,7 @@ export default {
   InvalidRestAssignmentPattern: "Invalid rest operator's argument.",
   LabelRedeclaration: ({ labelName }: { labelName: string }) =>
     `Label '${labelName}' is already declared.`,
-  LetInLexicalBinding:
-    "'let' is not allowed to be used as a name in 'let' or 'const' declarations.",
+  LetInLexicalBinding: "'let' is disallowed as a lexically bound name.",
   LineTerminatorBeforeArrow: "No line break is allowed before '=>'.",
   MalformedRegExpFlags: "Invalid regular expression flag.",
   MissingClassName: "A class name is required.",
