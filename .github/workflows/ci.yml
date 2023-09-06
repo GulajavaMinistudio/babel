@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: 'Check or update Yarn cache (fix w/ "yarn install")'
@@ -35,11 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: 'Check for unmet constraints (fix w/ "yarn constraints --fix")'
@@ -64,17 +64,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Generate coverage report
         run: |
           make -j test-ci-coverage
           yarn test:esm
+        env:
+          BABEL_CLI_FLAKY_TESTS: true
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
 
@@ -84,11 +86,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Use ESM and build
@@ -100,6 +102,7 @@ jobs:
         env:
           BABEL_ENV: test
           USE_ESM: true
+          BABEL_CLI_FLAKY_TESTS: trues
 
   build:
     name: Build Babel Artifacts
@@ -110,11 +113,11 @@ jobs:
     #    YARN_NODE_LINKER: pnp # use pnp linker for better linking performance and stricter checks
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Build babel artifacts
@@ -150,11 +153,11 @@ jobs:
     #    YARN_NODE_LINKER: pnp # use pnp linker for better linking performance and stricter checks
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Build babel artifacts
@@ -175,11 +178,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -205,11 +208,11 @@ jobs:
         node-version: [18, 16, 14, 12, 10, 8, 6]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest # Run yarn on latest node
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -247,12 +250,13 @@ jobs:
         run: |
           BABEL_ENV=test node --max-old-space-size=4096 ./node_modules/.bin/jest --ci
         env:
+          BABEL_CLI_FLAKY_TESTS: true
           TEST_FUZZ: "${{ (matrix.node-version == '6' || matrix.node-version == '8' || matrix.node-version == '10') && 'false' || 'true' }}"
       - name: Use Node.js latest # For `yarn version` in post actions of the first actions/setup-node
         if: matrix.node-version == '6' || matrix.node-version == '8' || matrix.node-version == '10'
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
 
   build-babel8:
     name: Build Babel 8 Artifacts
@@ -263,11 +267,11 @@ jobs:
     #    YARN_NODE_LINKER: pnp # use pnp linker for better linking performance and stricter checks
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Use ESM
@@ -303,7 +307,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js 16.20
         uses: actions/setup-node@v3
         with:
@@ -327,6 +331,7 @@ jobs:
           BABEL_ENV: test
           BABEL_8_BREAKING: true
           BABEL_TYPES_8_BREAKING: true
+          BABEL_CLI_FLAKY_TESTS: true
 
   test-windows:
     name: Test on Windows
@@ -334,11 +339,11 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -352,6 +357,7 @@ jobs:
         run: yarn jest --ci
         env:
           BABEL_ENV: test
+          BABEL_CLI_FLAKY_TESTS: true
 
   external-parser-tests:
     name: Third-party Parser Tests
@@ -359,11 +365,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -388,11 +394,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       # See https://github.com/babel/babel/pull/12906
@@ -494,11 +500,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -519,14 +525,14 @@ jobs:
     if: github.repository == 'babel/babel'
     steps:
       - name: Checkout Babel
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
       - name: Checkout test runner
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: babel/babel-test262-runner
           path: babel-test262-runner
@@ -556,11 +562,11 @@ jobs:
     needs: [build, test262-prepare]
     steps:
       - name: Checkout Babel
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v3
         with:
-          node-version: latest
+          node-version: 20.5.x
           check-latest: true
       - name: Install
         run: yarn install
@@ -570,7 +576,7 @@ jobs:
       - name: Extract artifacts
         run: tar -xf babel-artifact.tar; rm babel-artifact.tar
       - name: Checkout test runner
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: babel/babel-test262-runner
           path: babel-test262-runner
@@ -635,7 +641,7 @@ jobs:
           name: test262-result
           path: test262.tap
       - name: Checkout test runner
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: babel/babel-test262-runner
           path: babel-test262-runner
