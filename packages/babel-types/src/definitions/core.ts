@@ -63,10 +63,11 @@ defineType("AssignmentExpression", {
     },
     left: {
       validate: !process.env.BABEL_TYPES_8_BREAKING
-        ? assertNodeType("LVal")
+        ? assertNodeType("LVal", "OptionalMemberExpression")
         : assertNodeType(
             "Identifier",
             "MemberExpression",
+            "OptionalMemberExpression",
             "ArrayPattern",
             "ObjectPattern",
             "TSAsExpression",
@@ -1744,6 +1745,10 @@ defineType("ImportDeclaration", {
       optional: true,
       validate: assertValueType("boolean"),
     },
+    phase: {
+      default: null,
+      validate: assertOneOf("source", "defer"),
+    },
     specifiers: {
       validate: chain(
         assertValueType("array"),
@@ -1802,6 +1807,24 @@ defineType("ImportSpecifier", {
       // Handle Flowtype's extension "import {typeof foo} from"
       // And TypeScript's "import { type foo } from"
       validate: assertOneOf("type", "typeof", "value"),
+      optional: true,
+    },
+  },
+});
+
+defineType("ImportExpression", {
+  visitor: ["source", "options"],
+  aliases: ["Expression"],
+  fields: {
+    phase: {
+      default: null,
+      validate: assertOneOf("source", "defer"),
+    },
+    source: {
+      validate: assertNodeType("Expression"),
+    },
+    options: {
+      validate: assertNodeType("Expression"),
       optional: true,
     },
   },

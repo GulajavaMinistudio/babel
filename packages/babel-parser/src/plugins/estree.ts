@@ -424,6 +424,9 @@ export default (superClass: typeof Parser) =>
           this.hasPlugin("importAttributes") ||
           this.hasPlugin("importAssertions")
         ) {
+          (node as N.Node as N.EstreeImportExpression).options =
+            node.arguments[1] ?? null;
+          // compatibility with previous ESTree AST
           (node as N.Node as N.EstreeImportExpression).attributes =
             node.arguments[1] ?? null;
         }
@@ -533,6 +536,13 @@ export default (superClass: typeof Parser) =>
       }
 
       return node;
+    }
+
+    isOptionalMemberExpression(node: N.Node) {
+      if (node.type === "ChainExpression") {
+        return node.expression.type === "MemberExpression";
+      }
+      return super.isOptionalMemberExpression(node);
     }
 
     hasPropertyAsPrivateName(node: N.Node): boolean {

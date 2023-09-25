@@ -10,11 +10,15 @@ import {
   getModuleName,
 } from "@babel/helper-module-transforms";
 import simplifyAccess from "@babel/helper-simple-access";
-import { template, types as t } from "@babel/core";
+import { template, types as t, type PluginPass } from "@babel/core";
 import type { PluginOptions } from "@babel/helper-module-transforms";
-import type { Visitor, Scope } from "@babel/traverse";
+import type { Visitor, Scope, NodePath } from "@babel/traverse";
 
 import { transformDynamicImport } from "./dynamic-import.ts";
+import { lazyImportsHook } from "./lazy.ts";
+
+import { defineCommonJSHook, makeInvokers } from "./hooks.ts";
+export { defineCommonJSHook };
 
 export interface Options extends PluginOptions {
   allowCommonJSExports?: boolean;
@@ -166,12 +170,18 @@ export default declare((api, options: Options) => {
 
     pre() {
       this.file.set("@babel/plugin-transform-modules-*", "commonjs");
+
+      if (lazy) defineCommonJSHook(this.file, lazyImportsHook(lazy));
     },
 
     visitor: {
-      CallExpression(path) {
+      ["CallExpression" +
+        (api.types.importExpression ? "|ImportExpression" : "")](
+        this: PluginPass,
+        path: NodePath<t.CallExpression | t.ImportExpression>,
+      ) {
         if (!this.file.has("@babel/plugin-proposal-dynamic-import")) return;
-        if (!t.isImport(path.node.callee)) return;
+        if (path.isCallExpression() && !t.isImport(path.node.callee)) return;
 
         let { scope } = path;
         do {
@@ -212,6 +222,8 @@ export default declare((api, options: Options) => {
           // @ts-expect-error todo(flow->ts): do not reuse variables
           if (moduleName) moduleName = t.stringLiteral(moduleName);
 
+          const hooks = makeInvokers(this.file);
+
           const { meta, headers } = rewriteModuleStatementsAndPrepareHeader(
             path,
             {
@@ -223,7 +235,8 @@ export default declare((api, options: Options) => {
               allowTopLevelThis,
               noInterop,
               importInterop,
-              lazy,
+              wrapReference: hooks.wrapReference,
+              getWrapperPayload: hooks.getWrapperPayload,
               esNamespaceOnly:
                 typeof state.filename === "string" &&
                 /\.mjs$/.test(state.filename)
@@ -241,32 +254,28 @@ export default declare((api, options: Options) => {
 
             let header: t.Statement;
             if (isSideEffectImport(metadata)) {
-              if (metadata.lazy) throw new Error("Assertion failure");
+              if (lazy && metadata.wrap === "function") {
+                throw new Error("Assertion failure");
+              }
 
               header = t.expressionStatement(loadExpr);
             } else {
-              // A lazy import that is never referenced can be safely
-              // omitted, since it wouldn't be executed anyway.
-              if (metadata.lazy && !metadata.referenced) {
-                continue;
-              }
-
               const init =
                 wrapInterop(path, loadExpr, metadata.interop) || loadExpr;
 
-              if (metadata.lazy) {
-                header = template.statement.ast`
-                  function ${metadata.name}() {
-                    const data = ${init};
-                    ${metadata.name} = function(){ return data; };
-                    return data;
-                  }
-                `;
-              } else {
-                header = template.statement.ast`
-                  var ${metadata.name} = ${init};
-                `;
+              if (metadata.wrap) {
+                const res = hooks.buildRequireWrapper(
+                  metadata.name,
+                  init,
+                  metadata.wrap,
+                  metadata.referenced,
+                );
+                if (res === false) continue;
+                else header = res;
               }
+              header ??= template.statement.ast`
+                var ${metadata.name} = ${init};
+              `;
             }
             header.loc = metadata.loc;
 
@@ -276,6 +285,7 @@ export default declare((api, options: Options) => {
                 meta,
                 metadata,
                 constantReexports,
+                hooks.wrapReference,
               ),
             );
           }

@@ -624,6 +624,13 @@ export interface NewExpression extends CallOrNewBase {
   optional?: boolean; // TODO: Not in spec
 }
 
+export interface ImportExpression extends NodeBase {
+  type: "ImportExpression";
+  source: Expression;
+  phase?: null | "source" | "defer";
+  options: Expression | null;
+}
+
 export interface SequenceExpression extends NodeBase {
   type: "SequenceExpression";
   expressions: Expression[];
@@ -921,6 +928,7 @@ export interface ImportDeclaration extends NodeBase {
   >;
   source: Literal;
   importKind?: "type" | "typeof" | "value"; // TODO: Not in spec,
+  phase?: null | "source" | "defer";
   attributes?: ImportAttribute[];
   // @deprecated
   assertions?: ImportAttribute[];
@@ -1213,6 +1221,10 @@ export interface EstreeMethodDefinition extends NodeBase {
 export interface EstreeImportExpression extends NodeBase {
   type: "ImportExpression";
   source: Expression;
+  options?: Expression | null;
+  /**
+   * @deprecated Use options instead
+   */
   attributes?: Expression | null;
 }
 

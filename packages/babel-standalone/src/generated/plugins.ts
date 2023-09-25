@@ -16,8 +16,9 @@ import syntaxFunctionSent from "@babel/plugin-syntax-function-sent";
 import syntaxImportAssertions from "@babel/plugin-syntax-import-assertions";
 import syntaxImportAttributes from "@babel/plugin-syntax-import-attributes";
 import syntaxImportReflection from "@babel/plugin-syntax-import-reflection";
-import syntaxModuleBlocks from "@babel/plugin-syntax-module-blocks";
 import syntaxJsx from "@babel/plugin-syntax-jsx";
+import syntaxModuleBlocks from "@babel/plugin-syntax-module-blocks";
+import syntaxOptionalChainingAssign from "@babel/plugin-syntax-optional-chaining-assign";
 import syntaxPipelineOperator from "@babel/plugin-syntax-pipeline-operator";
 import syntaxRecordAndTuple from "@babel/plugin-syntax-record-and-tuple";
 import syntaxTypescript from "@babel/plugin-syntax-typescript";
@@ -40,6 +41,7 @@ import transformNumericSeparator from "@babel/plugin-transform-numeric-separator
 import transformObjectRestSpread from "@babel/plugin-transform-object-rest-spread";
 import transformOptionalCatchBinding from "@babel/plugin-transform-optional-catch-binding";
 import transformOptionalChaining from "@babel/plugin-transform-optional-chaining";
+import proposalOptionalChainingAssign from "@babel/plugin-proposal-optional-chaining-assign";
 import proposalPipelineOperator from "@babel/plugin-proposal-pipeline-operator";
 import transformPrivateMethods from "@babel/plugin-transform-private-methods";
 import transformPrivatePropertyInObject from "@babel/plugin-transform-private-property-in-object";
@@ -100,6 +102,7 @@ import transformTypescript from "@babel/plugin-transform-typescript";
 import transformUnicodeEscapes from "@babel/plugin-transform-unicode-escapes";
 import transformUnicodeRegex from "@babel/plugin-transform-unicode-regex";
 import proposalExplicitResourceManagement from "@babel/plugin-proposal-explicit-resource-management";
+import proposalImportDefer from "@babel/plugin-proposal-import-defer";
 export const syntaxAsyncGenerators = makeNoopPlugin(),
   syntaxClassProperties = makeNoopPlugin(),
   syntaxClassStaticBlock = makeNoopPlugin(),
@@ -121,8 +124,9 @@ export {
   syntaxImportAssertions,
   syntaxImportAttributes,
   syntaxImportReflection,
-  syntaxModuleBlocks,
   syntaxJsx,
+  syntaxModuleBlocks,
+  syntaxOptionalChainingAssign,
   syntaxPipelineOperator,
   syntaxRecordAndTuple,
   syntaxTypescript,
@@ -145,6 +149,7 @@ export {
   transformObjectRestSpread,
   transformOptionalCatchBinding,
   transformOptionalChaining,
+  proposalOptionalChainingAssign,
   proposalPipelineOperator,
   transformPrivateMethods,
   transformPrivatePropertyInObject,
@@ -205,6 +210,7 @@ export {
   transformUnicodeEscapes,
   transformUnicodeRegex,
   proposalExplicitResourceManagement,
+  proposalImportDefer,
 };
 export const all: { [k: string]: any } = {
   "syntax-async-generators": syntaxAsyncGenerators,
@@ -227,8 +233,9 @@ export const all: { [k: string]: any } = {
   "syntax-import-assertions": syntaxImportAssertions,
   "syntax-import-attributes": syntaxImportAttributes,
   "syntax-import-reflection": syntaxImportReflection,
-  "syntax-module-blocks": syntaxModuleBlocks,
   "syntax-jsx": syntaxJsx,
+  "syntax-module-blocks": syntaxModuleBlocks,
+  "syntax-optional-chaining-assign": syntaxOptionalChainingAssign,
   "syntax-pipeline-operator": syntaxPipelineOperator,
   "syntax-record-and-tuple": syntaxRecordAndTuple,
   "syntax-typescript": syntaxTypescript,
@@ -252,6 +259,7 @@ export const all: { [k: string]: any } = {
   "transform-object-rest-spread": transformObjectRestSpread,
   "transform-optional-catch-binding": transformOptionalCatchBinding,
   "transform-optional-chaining": transformOptionalChaining,
+  "proposal-optional-chaining-assign": proposalOptionalChainingAssign,
   "proposal-pipeline-operator": proposalPipelineOperator,
   "transform-private-methods": transformPrivateMethods,
   "transform-private-property-in-object": transformPrivatePropertyInObject,
@@ -313,4 +321,5 @@ export const all: { [k: string]: any } = {
   "transform-unicode-escapes": transformUnicodeEscapes,
   "transform-unicode-regex": transformUnicodeRegex,
   "proposal-explicit-resource-management": proposalExplicitResourceManagement,
+  "proposal-import-defer": proposalImportDefer,
 };
