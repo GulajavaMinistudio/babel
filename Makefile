@@ -1,5 +1,5 @@
 FLOW_COMMIT = 105ad30f566f401db9cafcb49cd2831fb29e87c5
-TEST262_COMMIT = dd30d83e9e9b838615ac82c9629275b146f8648e
+TEST262_COMMIT = e0436fc52dc92ce1157e13fb75fde2c2d42d075b
 TYPESCRIPT_COMMIT = d87d0adcd30ac285393bf3bfbbb4d94d50c4f3c9
 
 SOURCES = packages codemods eslint
@@ -213,7 +213,7 @@ ifneq ("$(I_AM_USING_VERDACCIO)", "I_AM_SURE")
 	exit 1
 endif
 	$(YARN) release-tool version $(VERSION) --all --yes --tag-version-prefix="version-e2e-test-"
-	$(MAKE) prepublish-build
+	$(MAKE) prepublish
 	node ./scripts/set-module-type.js clean
 	YARN_NPM_PUBLISH_REGISTRY=http://localhost:4873 $(YARN) release-tool publish --yes --tag-version-prefix="version-e2e-test-"
 	$(MAKE) clean
