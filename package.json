@@ -1,6 +1,6 @@
 {
   "name": "babel",
-  "version": "7.23.3",
+  "version": "7.23.4",
   "version_babel8": "8.0.0-alpha.4",
   "private": true,
   "type": "commonjs",
@@ -18,7 +18,7 @@
     "test:runtime:bundlers": "node test/runtime-integration/bundlers.cjs",
     "test:runtime:node": "node test/runtime-integration/node.cjs"
   },
-  "packageManager": "yarn@3.6.2",
+  "packageManager": "yarn@4.0.2",
   "devDependencies": {
     "$repo-utils": "link:./scripts/repo-utils",
     "@babel/cli": "8.0.0-alpha.4",
@@ -47,6 +47,7 @@
     "@types/node": "^20.3.3",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.5.0",
+    "@yarnpkg/types": "^4.0.0",
     "babel-plugin-transform-charcodes": "^0.2.0",
     "c8": "^8.0.1",
     "chalk": "^5.3.0",
@@ -64,14 +65,14 @@
     "gulp-filter": "^7.0.0",
     "gulp-plumber": "^1.2.1",
     "husky": "^8.0.3",
-    "import-meta-resolve": "^3.0.0",
+    "import-meta-resolve": "^4.0.0",
     "is-ci": "^3.0.1",
     "jest": "^30.0.0-alpha.1",
     "jest-light-runner": "^0.6.0-alpha.1",
     "jest-worker": "^30.0.0-alpha.1",
-    "lint-staged": "^14.0.1",
+    "lint-staged": "^15.1.0",
     "mergeiterator": "^1.4.4",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "rollup": "^3.28.1",
     "rollup-plugin-dts": "^6.0.0",
     "rollup-plugin-dts-5": "npm:rollup-plugin-dts@^5.3.1",
@@ -103,7 +104,9 @@
     "@babel/plugin-syntax-unicode-sets-regex/@babel/helper-create-regexp-features-plugin": "workspace:*",
     "babel-plugin-polyfill-corejs2/@babel/compat-data": "workspace:*",
     "chokidar@^3.4.0": "patch:chokidar@npm%3A3.5.3#./.yarn/patches/chokidar-npm-3.5.3-c5f9b0a56a.patch",
-    "chokidar@^3.4.1": "patch:chokidar@npm%3A3.5.3#./.yarn/patches/chokidar-npm-3.5.3-c5f9b0a56a.patch"
+    "chokidar@^3.4.1": "patch:chokidar@npm%3A3.5.3#./.yarn/patches/chokidar-npm-3.5.3-c5f9b0a56a.patch",
+    "psl@npm:^1.1.28": "patch:psl@npm%3A1.9.0#~/.yarn/patches/psl-npm-1.9.0-a546edad1a.patch",
+    "psl@npm:^1.1.33": "patch:psl@npm%3A1.9.0#~/.yarn/patches/psl-npm-1.9.0-a546edad1a.patch"
   },
   "engines": {
     "yarn": ">=1.4.0"
