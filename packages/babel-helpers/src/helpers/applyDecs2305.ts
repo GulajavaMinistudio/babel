@@ -306,7 +306,7 @@ export default /* @no-mangle */ function applyDecs2305(
       }
     }
 
-    var newValue;
+    var newValue = Class;
 
     for (var i = decs.length - 1; i >= 0; i -= decoratorsHaveThis ? 2 : 1) {
       var dec = (decs as Function[])[i],
@@ -314,15 +314,9 @@ export default /* @no-mangle */ function applyDecs2305(
 
       var decoratorFinishedRef: DecoratorFinishedRef = {};
       var ctx: DecoratorContext = {
-        kind: [
-          "field",
-          "accessor",
-          "method",
-          "getter",
-          "setter",
-          "field",
-          "class",
-        ][kind] as any,
+        kind: ["field", "accessor", "method", "getter", "setter", "class"][
+          kind
+        ] as any,
 
         name: name,
         metadata: metadata,
@@ -342,17 +336,25 @@ export default /* @no-mangle */ function applyDecs2305(
 
       try {
         if (isClass) {
-          newValue = dec.call(decThis, Class, ctx);
+          if (
+            (_ = assertCallable(
+              dec.call(decThis, newValue, ctx),
+              "class decorators",
+              "return",
+            ))
+          ) {
+            newValue = _;
+          }
         } else {
           ctx.static = isStatic;
           ctx.private = isPrivate;
 
           var get, set;
-          if (!isPrivate && (isField || kind === PROP_KIND.METHOD)) {
+          if (!isPrivate) {
             get = function (target: any) {
               return target[name];
             };
-            if (isField) {
+            if (kind < PROP_KIND.METHOD || kind === PROP_KIND.SETTER) {
               set = function (target: any, v: any) {
                 target[name] = v;
               };
@@ -363,19 +365,11 @@ export default /* @no-mangle */ function applyDecs2305(
               return desc.value;
             };
           } else {
-            if (kind < PROP_KIND.METHOD || kind === PROP_KIND.GETTER) {
-              get = _bindPropCall(
-                desc,
-                "get",
-                isPrivate && assertInstanceIfPrivate,
-              );
+            if (kind < PROP_KIND.SETTER) {
+              get = _bindPropCall(desc, "get", assertInstanceIfPrivate);
             }
-            if (kind < PROP_KIND.METHOD || kind === PROP_KIND.SETTER) {
-              set = _bindPropCall(
-                desc,
-                "set",
-                isPrivate && assertInstanceIfPrivate,
-              );
+            if (kind !== PROP_KIND.GETTER) {
+              set = _bindPropCall(desc, "set", assertInstanceIfPrivate);
             }
           }
 
@@ -569,19 +563,15 @@ export default /* @no-mangle */ function applyDecs2305(
       return (
         classDecs.length && [
           defineMetadata(
-            assertCallable(
-              applyDec(
-                targetClass,
-                [classDecs],
-                classDecsHaveThis,
-                targetClass.name,
-                PROP_KIND.CLASS,
-                metadata,
-                initializers,
-              ),
-              "class decorators",
-              "return",
-            ) || targetClass,
+            applyDec(
+              targetClass,
+              [classDecs],
+              classDecsHaveThis,
+              targetClass.name,
+              PROP_KIND.CLASS,
+              metadata,
+              initializers,
+            ),
             metadata,
           ),
           runInitializers.bind(null, initializers, targetClass),
