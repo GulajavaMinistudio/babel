@@ -1,4 +1,4 @@
-var _initClass, _init_a, _init_d, _init_e, _call_f, _call_g, _call_g2, _init_h, _get_h, _set_h, _init_i, _init_m, _init_n, _call_o, _call_p, _call_q, _init_r, _get_r, _set_r, _initProto, _initStatic;
+var _initProto, _initStatic, _initClass, _init_a, _init_d, _init_e, _call_f, _call_g, _call_g2, _init_h, _get_h, _set_h, _init_i, _init_m, _init_n, _call_o, _call_p, _call_q, _init_r, _get_r, _set_r;
 const dec = () => {};
 let _Class;
 new class extends babelHelpers.identity {
@@ -46,12 +46,6 @@ new class extends babelHelpers.identity {
       static set m(v) {
         Class.#C = v;
       }
-      set #r(v) {
-        _set_r(this, v);
-      }
-      get #r() {
-        return _get_r(this);
-      }
     }
   }
   #o = _call_o;
@@ -65,6 +59,12 @@ new class extends babelHelpers.identity {
     _call_q(this, v);
   }
   #D = _init_r(this);
+  set #r(v) {
+    _set_r(this, v);
+  }
+  get #r() {
+    return _get_r(this);
+  }
   constructor() {
     super(_Class), _initClass();
   }

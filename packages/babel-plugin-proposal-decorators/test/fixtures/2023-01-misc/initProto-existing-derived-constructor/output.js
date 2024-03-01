@@ -68,7 +68,7 @@
     let log = [];
     new class Dummy extends B {
       constructor() {
-        var _computedKey, _initProto3;
+        var _initProto3, _computedKey;
         let key;
         _computedKey = babelHelpers.toPropertyKey((key = super(5).method(), log.push(key), key));
         class A extends B {
@@ -76,12 +76,12 @@
             [_initProto3] = babelHelpers.applyDecs2301(this, [[dec, 2, "method"]], []).e;
           }
           constructor() {
-            log.push(_initProto3(super(6)).method());
+            log.push(super(6).method());
           }
           method() {
             return this.a;
           }
-          [_computedKey];
+          [_computedKey] = void _initProto3(this);
         }
         new A();
       }
@@ -94,11 +94,11 @@
     const noop = () => fn => fn;
     new class extends B {
       constructor() {
-        var _dec, _initProto4;
-        _dec = noop(log.push(super(7).method()));
+        var _initProto4, _noopDecs;
+        _noopDecs = noop(log.push(super(7).method()));
         class A extends B {
           static {
-            [_initProto4] = babelHelpers.applyDecs2301(this, [[dec, 2, "method"], [_dec, 2, "noop"]], []).e;
+            [_initProto4] = babelHelpers.applyDecs2301(this, [[dec, 2, "method"], [_noopDecs, 2, "noop"]], []).e;
           }
           constructor() {
             log.push(_initProto4(super(8)).method());
@@ -147,10 +147,10 @@
         [_initProto6] = babelHelpers.applyDecs2301(this, [[dec, 2, "method"]], []).e;
       }
       constructor() {
-        var _dec2, _initProto7;
-        new (_dec2 = noop(log.push(_initProto6(super(11)).method())), class Dummy extends B {
+        var _initProto7, _noopDecs2;
+        new (_noopDecs2 = noop(log.push(_initProto6(super(11)).method())), class Dummy extends B {
           static {
-            [_initProto7] = babelHelpers.applyDecs2301(this, [[_dec2, 2, "noop"]], []).e;
+            [_initProto7] = babelHelpers.applyDecs2301(this, [[_noopDecs2, 2, "noop"]], []).e;
           }
           constructor() {
             log.push(_initProto7(super(12)).method());

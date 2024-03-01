@@ -66,12 +66,12 @@
     let log = [];
     new class Dummy extends B {
       constructor() {
-        var _computedKey, _initProto3, _A3;
+        var _initProto3, _computedKey, _A3;
         let key;
         _computedKey = babelHelpers.toPropertyKey((key = super(5).method(), log.push(key), key));
         class A extends B {
           constructor() {
-            log.push(_initProto3((super(6), babelHelpers.defineProperty(this, _computedKey, void 0))).method());
+            log.push((super(6), babelHelpers.defineProperty(this, _computedKey, void _initProto3(this))).method());
           }
           method() {
             return this.a;
@@ -90,8 +90,8 @@
     const noop = () => fn => fn;
     new class extends B {
       constructor() {
-        var _dec, _initProto4, _A4;
-        _dec = noop(log.push(super(7).method()));
+        var _initProto4, _noopDecs, _A4;
+        _noopDecs = noop(log.push(super(7).method()));
         class A extends B {
           constructor() {
             log.push(_initProto4(super(8)).method());
@@ -102,7 +102,7 @@
           noop() {}
         }
         _A4 = A;
-        [_initProto4] = babelHelpers.applyDecs2305(_A4, [[dec, 2, "method"], [_dec, 2, "noop"]], [], 0, void 0, B).e;
+        [_initProto4] = babelHelpers.applyDecs2305(_A4, [[dec, 2, "method"], [_noopDecs, 2, "noop"]], [], 0, void 0, B).e;
         new A();
       }
     }();
@@ -138,13 +138,13 @@
     const noop = () => fn => fn;
     class A extends B {
       constructor() {
-        var _dec2, _initProto7, _Dummy2;
-        new (_dec2 = noop(log.push(_initProto6(super(11)).method())), (_Dummy2 = class Dummy extends B {
+        var _initProto7, _noopDecs2, _Dummy2;
+        new (_noopDecs2 = noop(log.push(_initProto6(super(11)).method())), (_Dummy2 = class Dummy extends B {
           constructor() {
             log.push(_initProto7(super(12)).method());
           }
           noop() {}
-        }, [_initProto7] = babelHelpers.applyDecs2305(_Dummy2, [[_dec2, 2, "noop"]], [], 0, void 0, B).e, _Dummy2))();
+        }, [_initProto7] = babelHelpers.applyDecs2305(_Dummy2, [[_noopDecs2, 2, "noop"]], [], 0, void 0, B).e, _Dummy2))();
       }
       method() {
         return this.a;

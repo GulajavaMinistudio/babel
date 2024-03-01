@@ -301,6 +301,8 @@ async function run(task: Test) {
   let result: FileResult;
   let resultExec;
 
+  let execErr: Error;
+
   if (execCode) {
     const context = createTestContext();
     const execOpts = getOpts(exec);
@@ -318,9 +320,13 @@ async function run(task: Test) {
       resultExec = runCodeInTestContext(execCode, execOpts, context);
     } catch (err) {
       // Pass empty location to include the whole file in the output.
-      err.message =
-        `${exec.loc}: ${err.message}\n` + codeFrameColumns(execCode, {} as any);
-      throw err;
+      if (typeof err === "object" && err.message) {
+        err.message =
+          `${exec.loc}: ${err.message}\n` +
+          codeFrameColumns(execCode, {} as any);
+      }
+
+      execErr = err;
     }
   }
 
@@ -393,6 +399,10 @@ async function run(task: Test) {
         stderr.code,
       );
     }
+  }
+
+  if (execErr) {
+    throw execErr;
   }
 
   if (task.validateSourceMapVisual === true) {
@@ -733,7 +743,7 @@ const assertTest = function (
           // saveInFiles always creates an empty .babelrc, so lets exclude for now
           filename !== ".babelrc" &&
           filename !== ".babelignore" &&
-          !Object.prototype.hasOwnProperty.call(opts.inFiles, filename)
+          !Object.hasOwn(opts.inFiles, filename)
         ) {
           const expected = opts.outFiles[filename];
           const actual = actualFiles[filename];

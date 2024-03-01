@@ -1,4 +1,4 @@
-var _init_a, _init_a2, _get_a, _set_a, _init_computedKey, _init_computedKey2, _init_computedKey3, _init_computedKey4, _init_computedKey5, _init_computedKey6, _computedKey, _init_computedKey7, _initStatic;
+var _initStatic, _init_a, _init_a2, _get_a, _set_a, _init_computedKey, _init_computedKey2, _init_computedKey3, _init_computedKey4, _init_computedKey5, _init_computedKey6, _computedKey, _init_computedKey7;
 const logs = [];
 const dec = (value, context) => {
   logs.push(context.name);
@@ -23,10 +23,10 @@ class Foo {
     Foo.#A = v;
   }
   static #B = _init_a2(this);
-  set #a(v) {
+  static set #a(v) {
     _set_a(this, v);
   }
-  get #a() {
+  static get #a() {
     return _get_a(this);
   }
   static #C = _init_computedKey(this);

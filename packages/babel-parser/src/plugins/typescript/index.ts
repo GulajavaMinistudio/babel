@@ -31,7 +31,7 @@ import type { IJSXParserMixin } from "../jsx/index.ts";
 import { ParseBindingListFlags } from "../../parser/lval.ts";
 
 const getOwn = <T extends {}>(object: T, key: keyof T) =>
-  Object.hasOwnProperty.call(object, key) && object[key];
+  Object.hasOwn(object, key) && object[key];
 
 type TsModifier =
   | "readonly"
@@ -409,7 +409,7 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
 
           enforceOrder(startLoc, modifier, "in", "out");
         } else {
-          if (Object.hasOwnProperty.call(modified, modifier)) {
+          if (Object.hasOwn(modified, modifier)) {
             this.raise(TSErrors.DuplicateModifier, startLoc, { modifier });
           } else {
             enforceOrder(startLoc, modifier, "static", "readonly");
@@ -566,6 +566,19 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
 
       // For compatibility to estree we cannot call parseLiteral directly here
       node.argument = super.parseExprAtom() as N.StringLiteral;
+      if (
+        this.hasPlugin("importAttributes") ||
+        this.hasPlugin("importAssertions")
+      ) {
+        node.options = null;
+      }
+      if (this.eat(tt.comma)) {
+        this.expectImportAttributesPlugin();
+        if (!this.match(tt.parenR)) {
+          node.options = super.parseMaybeAssignAllowIn();
+          this.eat(tt.comma);
+        }
+      }
       this.expect(tt.parenR);
 
       if (this.eat(tt.dot)) {
@@ -699,7 +712,6 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
 
       node.params = this.tsParseBracketedList(
         "TypeParametersOrArguments",
-        // @ts-expect-error refine typings
         this.tsParseTypeParameter.bind(this, parseModifiers),
         /* bracket */ false,
         /* skipFirstToken */ true,

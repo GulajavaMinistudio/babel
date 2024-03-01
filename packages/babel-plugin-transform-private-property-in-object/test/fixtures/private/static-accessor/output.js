@@ -12,8 +12,4 @@ let Foo = /*#__PURE__*/function () {
   }]);
   return Foo;
 }();
-function _get_foo() {}
-var _foo = {
-  get: _get_foo,
-  set: void 0
-};
+function _get_foo(_this) {}

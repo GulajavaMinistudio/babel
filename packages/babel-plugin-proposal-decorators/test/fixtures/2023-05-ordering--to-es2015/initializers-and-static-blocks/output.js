@@ -1,4 +1,4 @@
-var _initClass, _init_field, _init_field2, _init_accessor, _init_accessor2, _initProto, _initStatic, _ref, _B, _temp;
+var _initProto, _initStatic, _initClass, _init_field, _init_field2, _init_accessor, _init_accessor2, _ref, _B, _temp;
 const log = [];
 const classDec1 = (cls, ctxClass) => {
   log.push("c2");
@@ -148,10 +148,7 @@ new (_B = /*#__PURE__*/new WeakMap(), (_temp = class extends babelHelpers.identi
   constructor() {
     (super(_Foo), babelHelpers.defineProperty(this, "field", ((() => {
       log.push("static:start");
-    })(), _init_field2(this))), babelHelpers.classPrivateFieldInitSpec(this, _B, {
-      writable: true,
-      value: _init_accessor2(this)
-    }), this), (() => {
+    })(), _init_field2(this))), babelHelpers.classPrivateFieldInitSpec(this, _B, _init_accessor2(this)), this), (() => {
       log.push("static:end");
     })(), _initClass();
   }
@@ -162,10 +159,7 @@ new (_B = /*#__PURE__*/new WeakMap(), (_temp = class extends babelHelpers.identi
       log.push("ctor:start");
       super();
       babelHelpers.defineProperty(this, "field", (_initProto(this), _init_field(this)));
-      babelHelpers.classPrivateFieldInitSpec(this, _A, {
-        writable: true,
-        value: _init_accessor(this)
-      });
+      babelHelpers.classPrivateFieldInitSpec(this, _A, _init_accessor(this));
       log.push("ctor:end");
     }
     method() {}
@@ -179,16 +173,16 @@ new (_B = /*#__PURE__*/new WeakMap(), (_temp = class extends babelHelpers.identi
     set setter(x) {}
     static set getter(x) {}
     get accessor() {
-      return babelHelpers.classPrivateFieldGet(this, _A);
+      return babelHelpers.classPrivateFieldGet2(_A, this);
     }
     set accessor(v) {
-      babelHelpers.classPrivateFieldSet(this, _A, v);
+      babelHelpers.classPrivateFieldSet2(_A, this, v);
     }
     static get accessor() {
-      return babelHelpers.classPrivateFieldGet(Foo, _B);
+      return babelHelpers.classPrivateFieldGet2(_B, Foo);
     }
     static set accessor(v) {
-      babelHelpers.classPrivateFieldSet(Foo, _B, v);
+      babelHelpers.classPrivateFieldSet2(_B, Foo, v);
     }
   }
   _Foo2 = Foo;

@@ -14,6 +14,7 @@ export interface Options {
   corejs?: string | number | { version: string | number; proposals?: boolean };
   helpers?: boolean;
   version?: string;
+  moduleName?: null | string;
 }
 
 export default declare((api, options: Options, dirname) => {
@@ -27,6 +28,7 @@ export default declare((api, options: Options, dirname) => {
     helpers: useRuntimeHelpers = true,
     version: runtimeVersion = "7.0.0-beta.0",
     absoluteRuntime = false,
+    moduleName = null,
   } = options;
 
   if (typeof useRuntimeHelpers !== "boolean") {
@@ -46,6 +48,10 @@ export default declare((api, options: Options, dirname) => {
     throw new Error(`The 'version' option must be a version string.`);
   }
 
+  if (moduleName !== null && typeof moduleName !== "string") {
+    throw new Error("The 'moduleName' option must be null or a string.");
+  }
+
   if (!process.env.BABEL_8_BREAKING) {
     // In recent @babel/runtime versions, we can use require("helper").default
     // instead of require("helper") so that it has the same interface as the
@@ -55,11 +61,7 @@ export default declare((api, options: Options, dirname) => {
     var supportsCJSDefault = hasMinVersion(DUAL_MODE_RUNTIME, runtimeVersion);
   }
 
-  function has(obj: {}, key: string) {
-    return Object.prototype.hasOwnProperty.call(obj, key);
-  }
-
-  if (has(options, "useBuiltIns")) {
+  if (Object.hasOwn(options, "useBuiltIns")) {
     // @ts-expect-error deprecated options
     if (options["useBuiltIns"]) {
       throw new Error(
@@ -74,7 +76,7 @@ export default declare((api, options: Options, dirname) => {
     }
   }
 
-  if (has(options, "polyfill")) {
+  if (Object.hasOwn(options, "polyfill")) {
     // @ts-expect-error deprecated options
     if (options["polyfill"] === false) {
       throw new Error(
@@ -89,17 +91,8 @@ export default declare((api, options: Options, dirname) => {
     }
   }
 
-  if (has(options, "moduleName")) {
-    throw new Error(
-      "The 'moduleName' option has been removed. @babel/transform-runtime " +
-        "no longer supports arbitrary runtimes. If you were using this to " +
-        "set an absolute path for Babel's standard runtimes, please use the " +
-        "'absoluteRuntime' option.",
-    );
-  }
-
   if (process.env.BABEL_8_BREAKING) {
-    if (has(options, "regenerator")) {
+    if (Object.hasOwn(options, "regenerator")) {
       throw new Error(
         "The 'regenerator' option has been removed. The generators transform " +
           "no longers relies on a 'regeneratorRuntime' global. " +
@@ -110,7 +103,7 @@ export default declare((api, options: Options, dirname) => {
   }
 
   if (process.env.BABEL_8_BREAKING) {
-    if (has(options, "useESModules")) {
+    if (Object.hasOwn(options, "useESModules")) {
       throw new Error(
         "The 'useESModules' option has been removed. @babel/runtime now uses " +
           "package.json#exports to support both CommonJS and ESM helpers.",
@@ -161,7 +154,9 @@ export default declare((api, options: Options, dirname) => {
 
       file.set("helperGenerator", (name: string) => {
         modulePath ??= getRuntimePath(
-          file.get("runtimeHelpersModuleName") ?? "@babel/runtime",
+          moduleName ??
+            file.get("runtimeHelpersModuleName") ??
+            "@babel/runtime",
           dirname,
           absoluteRuntime,
         );

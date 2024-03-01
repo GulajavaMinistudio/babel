@@ -24,20 +24,17 @@ let Outer = /*#__PURE__*/function (_Hello) {
     let Inner = /*#__PURE__*/function () {
       function Inner() {
         babelHelpers.classCallCheck(this, Inner);
-        babelHelpers.classPrivateFieldInitSpec(this, _A, {
-          writable: true,
-          value: 'hello'
-        });
+        babelHelpers.classPrivateFieldInitSpec(this, _A, 'hello');
       }
       babelHelpers.createClass(Inner, [{
         key: _computedKey,
         get: function () {
-          return babelHelpers.classPrivateFieldGet(this, _A);
+          return babelHelpers.classPrivateFieldGet2(_A, this);
         }
       }, {
         key: _computedKey,
         set: function (v) {
-          babelHelpers.classPrivateFieldSet(this, _A, v);
+          babelHelpers.classPrivateFieldSet2(_A, this, v);
         }
       }]);
       return Inner;
