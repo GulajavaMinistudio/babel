@@ -362,6 +362,7 @@ function buildRollup(packages, buildStandalone) {
             switch (warning.code) {
               case "CIRCULAR_DEPENDENCY":
               case "SOURCEMAP_ERROR": // Rollup warns about the babel-polyfills source maps
+              case "INCONSISTENT_IMPORT_ATTRIBUTES": // @rollup/plugin-commonjs transforms require("...json") to an import without attributes
                 return;
               case "UNUSED_EXTERNAL_IMPORT":
                 warn(warning);
@@ -419,6 +420,21 @@ function buildRollup(packages, buildStandalone) {
                 "packages/babel-compat-data/scripts/data/legacy-plugin-aliases.js",
                 "packages/*/src/**/*.cjs",
               ],
+              ignore:
+                process.env.STRIP_BABEL_8_FLAG &&
+                bool(process.env.BABEL_8_BREAKING)
+                  ? [
+                      // These require()s are all in babel-preset-env/src/polyfills/babel-7-plugins.cjs
+                      // They are gated by a !process.env.BABEL_8_BREAKING check, but
+                      // @rollup/plugin-commonjs extracts them to import statements outside of the
+                      // check and thus they end up in the final bundle.
+                      "babel-plugin-polyfill-corejs2",
+                      "babel-plugin-polyfill-regenerator",
+                      "./babel-polyfill.cjs",
+                      "./regenerator.cjs",
+                      "@babel/compat-data/corejs2-built-ins",
+                    ]
+                  : [],
               dynamicRequireTargets: [
                 // https://github.com/mathiasbynens/regexpu-core/blob/ffd8fff2e31f4597f6fdfee75d5ac1c5c8111ec3/rewrite-pattern.js#L48
                 resolveChain(
