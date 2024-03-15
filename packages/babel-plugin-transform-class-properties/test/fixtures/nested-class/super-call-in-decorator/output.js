@@ -5,10 +5,9 @@ let Hello = /*#__PURE__*/babelHelpers.createClass(function Hello() {
   return () => () => "hello";
 });
 let Outer = /*#__PURE__*/function (_Hello) {
-  babelHelpers.inherits(Outer, _Hello);
   function Outer() {
-    let _ref;
-    var _helloDecs, _init_hello, _init_extra_hello, _Inner;
+    var _Inner;
+    let _helloDecs, _init_hello, _init_extra_hello, _ref;
     var _this;
     babelHelpers.classCallCheck(this, Outer);
     _ref = (_helloDecs = _this = babelHelpers.callSuper(this, Outer), "hello");
@@ -21,6 +20,7 @@ let Outer = /*#__PURE__*/function (_Hello) {
     [_init_hello, _init_extra_hello] = babelHelpers.applyDecs2311(_Inner, [], [[_helloDecs, 0, "hello"]]).e;
     return babelHelpers.possibleConstructorReturn(_this, new Inner());
   }
+  babelHelpers.inherits(Outer, _Hello);
   return babelHelpers.createClass(Outer);
 }(Hello);
 expect(new Outer().hello).toBe('hello');
