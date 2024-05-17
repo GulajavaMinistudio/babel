@@ -372,13 +372,17 @@ const collectorVisitor: Visitor<CollectVisitorState> = {
       path.scope.registerBinding("local", path);
     }
   },
+  TSTypeAnnotation(path) {
+    path.skip();
+  },
 };
 
 let uid = 0;
 
 export type { Binding };
 
-export default class Scope {
+export { Scope as default };
+class Scope {
   uid;
 
   path: NodePath;
@@ -437,7 +441,7 @@ export default class Scope {
       const shouldSkip = path.key === "key" || path.listKey === "decorators";
       path = path.parentPath;
       if (shouldSkip && path.isMethod()) path = path.parentPath;
-      if (path && path.isScope()) parent = path;
+      if (path?.isScope()) parent = path;
     } while (path && !parent);
 
     return parent?.scope;
@@ -1112,9 +1116,7 @@ export default class Scope {
     }
 
     if (path.isLoop() || path.isCatchClause() || path.isFunction()) {
-      // @ts-expect-error TS can not infer NodePath<Loop> | NodePath<CatchClause> as NodePath<Loop | CatchClause>
       path.ensureBlock();
-      // @ts-expect-error todo(flow->ts): improve types
       path = path.get("body");
     }
 
@@ -1362,4 +1364,9 @@ export default class Scope {
       }
     } while ((scope = scope.parent));
   }
+}
+
+type _Binding = Binding;
+namespace Scope {
+  export type Binding = _Binding;
 }

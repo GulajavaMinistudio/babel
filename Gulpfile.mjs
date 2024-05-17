@@ -5,8 +5,7 @@ import { createRequire } from "module";
 import { fileURLToPath } from "url";
 import plumber from "gulp-plumber";
 import through from "through2";
-import chalk from "chalk";
-import filter from "gulp-filter";
+import colors from "picocolors";
 import gulp from "gulp";
 import { rollup } from "rollup";
 import {
@@ -100,13 +99,6 @@ function errorsLogger() {
   });
 }
 
-function rename(fn) {
-  return through.obj(function (file, enc, callback) {
-    file.path = fn(file);
-    callback(null, file);
-  });
-}
-
 /**
  * @param {string} generator
  * @param {string} pkg
@@ -125,7 +117,7 @@ function generateHelpers(generator, dest, filename, message) {
         file.contents = Buffer.from(
           await formatCode(await generateCode(filename), dest + file.path)
         );
-        log(`${chalk.green("✔")} Generated ${message}`);
+        log(`${colors.green("✔")} Generated ${message}`);
         callback(null, file);
       })
     )
@@ -154,10 +146,10 @@ async function generateTypeHelpers(helperKind, filename = "index.ts") {
  * @typedef {("asserts" | "validators")} TraverseHelperKind
  * @param {TraverseHelperKind} helperKind
  */
-function generateTraverseHelpers(helperKind) {
+function generateTraverseHelpers(helperKind, outBase = "") {
   return generateHelpers(
     `./packages/babel-traverse/scripts/generators/${helperKind}.js`,
-    `./packages/babel-traverse/src/path/generated/`,
+    `./packages/babel-traverse/src/${outBase}/generated/`,
     `${helperKind}.d.ts`,
     `@babel/traverse -> ${helperKind}`
   );
@@ -233,22 +225,6 @@ function finish(stream) {
   });
 }
 
-function getFiles(glob, { include, exclude }) {
-  let stream = gulp.src(glob, { base: monorepoRoot });
-
-  if (exclude) {
-    const filters = exclude.map(p => `!**/${p}/**`);
-    filters.unshift("**");
-    stream = stream.pipe(filter(filters));
-  }
-  if (include) {
-    const filters = include.map(p => `**/${p}/**`);
-    stream = stream.pipe(filter(filters));
-  }
-
-  return stream;
-}
-
 function createWorker(useWorker) {
   const numWorkers = Math.ceil(Math.max(cpus().length, 1) / 2) - 1;
   if (
@@ -288,7 +264,7 @@ async function buildBabel(useWorker, ignore = []) {
   return Promise.allSettled(promises)
     .then(results => {
       results.forEach(result => {
-        if (result.status == "rejected") {
+        if (result.status === "rejected") {
           if (process.env.WATCH_SKIP_BUILD) {
             console.error(result.reason);
           } else {
@@ -352,7 +328,7 @@ function buildRollup(packages, buildStandalone) {
           /@babel\/preset-modules\/.*/,
         ];
 
-        log(`Compiling '${chalk.cyan(input)}' with rollup ...`);
+        log(`Compiling '${colors.cyan(input)}' with rollup ...`);
         const bundle = await rollup({
           input,
           external: buildStandalone ? [] : external,
@@ -562,15 +538,15 @@ function buildRollup(packages, buildStandalone) {
 
         if (!process.env.IS_PUBLISH) {
           log(
-            chalk.yellow(
-              `Skipped minification of '${chalk.cyan(
+            colors.yellow(
+              `Skipped minification of '${colors.cyan(
                 outputFile
               )}' because not publishing`
             )
           );
           return undefined;
         }
-        log(`Minifying '${chalk.cyan(outputFile)}'...`);
+        log(`Minifying '${colors.cyan(outputFile)}'...`);
 
         await bundle.write({
           file: outputFile.replace(/\.js$/, ".min.js"),
@@ -596,14 +572,46 @@ function buildRollup(packages, buildStandalone) {
 }
 
 function buildRollupDts(packages) {
-  async function build(input, output, banner) {
-    log(`Bundling '${chalk.cyan(output)}' with rollup ...`);
+  async function build(input, output, banner, packageName) {
+    log(`Bundling '${colors.cyan(output)}' with rollup ...`);
+
+    let external;
+    if (packageName) {
+      const pkgJSON = require("./" + packageName + "/package.json");
+      const {
+        dependencies = {},
+        devDependencies = {},
+        peerDependencies = {},
+      } = pkgJSON;
+      external = [
+        ...Object.keys(dependencies),
+        ...Object.keys(peerDependencies),
+        // TODO: These should all be moved to dependencies
+        ...Object.keys(devDependencies),
+      ].map(dep => new RegExp(`^${dep}(?:/.+)?$`));
+    }
 
     const bundle = await rollup({
       input,
       plugins: [
         bool(process.env.BABEL_8_BREAKING) ? rollupDts() : rollupDts5(),
       ],
+      external,
+      onwarn(warning) {
+        if (
+          warning.code === "UNUSED_EXTERNAL_IMPORT" &&
+          warning.names.length === 1 &&
+          warning.names[0] === "default"
+        ) {
+          // rollup-plugin-dts doesn't like default imports when they are just re-exported
+          return;
+        }
+        if (warning.code === "UNRESOLVED_IMPORT" && warning.exporter === "vm") {
+          // TODO: We probably need @types/node
+          return;
+        }
+        console.warn(warning);
+      },
     });
 
     await bundle.write({
@@ -617,87 +625,85 @@ function buildRollupDts(packages) {
     const input = `${mapToDts(packageName)}/src/index.d.ts`;
     const output = `${packageName}/lib/index.d.ts`;
 
-    await build(input, output);
+    await build(input, output, "", packageName);
   });
 
   tasks.push(
     build(
       "packages/babel-parser/typings/babel-parser.source.d.ts",
       "packages/babel-parser/typings/babel-parser.d.ts",
-      "// This file is auto-generated! Do not modify it directly.\n/* eslint-disable import/no-extraneous-dependencies, @typescript-eslint/consistent-type-imports, prettier/prettier */"
+      "// This file is auto-generated! Do not modify it directly.\n/* eslint-disable import/no-extraneous-dependencies, @typescript-eslint/consistent-type-imports, prettier/prettier */",
+      "packages/babel-parser"
     )
   );
 
   return Promise.all(tasks);
 }
 
-function copyDts(packages) {
-  return getFiles(`${defaultPackagesGlob}/src/**/*.d.ts`, { include: packages })
-    .pipe(rename(file => path.resolve(file.base, mapToDts(file.relative))))
-    .pipe(gulp.dest(monorepoRoot));
+function* packagesIterator(exclude) {
+  for (const packageDir of ["packages", "codemods"]) {
+    for (const dir of fs.readdirSync(new URL(packageDir, import.meta.url))) {
+      const src = `${packageDir}/${dir}`;
+      if (exclude.has(src)) continue;
+      if (!fs.existsSync(new URL(`${src}/package.json`, import.meta.url))) {
+        continue;
+      }
+      yield src;
+    }
+  }
 }
 
 function* libBundlesIterator() {
-  const noBundle = new Set([
-    // @rollup/plugin-commonjs will mess up with babel-helper-fixtures
-    "babel-helper-fixtures",
-    // babel-standalone is handled by rollup-babel-standalone task
-    "babel-standalone",
-    // todo: Rollup hangs on allowHashBang: true with babel-cli/src/babel/index.ts hashbang
-    "babel-cli",
-    // todo: @rollup/node-resolve 'browsers' option does not work when package.json contains `exports`
-    // https://github.com/rollup/plugins/tree/master/packages/node-resolve#browser
-    "babel-register",
-    "babel-core",
-    "babel-plugin-transform-runtime",
-    // @babel/node invokes internal lib/_babel-node.js
-    "babel-node",
-    // todo: test/helpers/define-helper requires internal lib/helpers access
-    "babel-helpers",
-    // multiple exports
-    "babel-plugin-transform-react-jsx",
-    // rollup bug https://github.com/babel/babel/pull/16001
-    "babel-helper-builder-react-jsx",
-    // exit-loader.cjs
-    "babel-helper-transform-fixture-test-runner",
-  ]);
-  for (const packageDir of ["packages", "codemods"]) {
-    for (const dir of fs.readdirSync(new URL(packageDir, import.meta.url))) {
-      if (noBundle.has(dir)) continue;
-
-      const src = `${packageDir}/${dir}`;
-
-      let pkgJSON;
-      try {
-        pkgJSON = JSON.parse(
-          fs.readFileSync(new URL(`${src}/package.json`, import.meta.url))
-        );
-      } catch (err) {
-        if (err.code !== "ENOENT" && err.code !== "ENOTDIR") throw err;
-        continue;
-      }
-      if (pkgJSON.main) {
+  const noBundle = new Set(
+    [
+      // @rollup/plugin-commonjs will mess up with babel-helper-fixtures
+      "babel-helper-fixtures",
+      // babel-standalone is handled by rollup-babel-standalone task
+      "babel-standalone",
+      // todo: Rollup hangs on allowHashBang: true with babel-cli/src/babel/index.ts hashbang
+      "babel-cli",
+      // todo: @rollup/node-resolve 'browsers' option does not work when package.json contains `exports`
+      // https://github.com/rollup/plugins/tree/master/packages/node-resolve#browser
+      "babel-register",
+      "babel-core",
+      "babel-plugin-transform-runtime",
+      // @babel/node invokes internal lib/_babel-node.js
+      "babel-node",
+      // todo: test/helpers/define-helper requires internal lib/helpers access
+      "babel-helpers",
+      // multiple exports
+      "babel-plugin-transform-react-jsx",
+      // rollup bug https://github.com/babel/babel/pull/16001
+      "babel-helper-builder-react-jsx",
+      // exit-loader.cjs
+      "babel-helper-transform-fixture-test-runner",
+    ].map(n => `packages/${n}`)
+  );
+  for (const src of packagesIterator(noBundle)) {
+    const pkgJSON = JSON.parse(
+      fs.readFileSync(new URL(`${src}/package.json`, import.meta.url))
+    );
+    if (pkgJSON.main) {
+      yield {
+        src,
+        format: USE_ESM ? "esm" : "cjs",
+        dest: "lib",
+        input: getIndexFromPackage(src),
+      };
+    } else if (pkgJSON.bin) {
+      for (const binPath of Object.values(pkgJSON.bin)) {
+        const filename = binPath.slice(binPath.lastIndexOf("/") + 1);
+        const input =
+          src === "packages/babel-cli" && filename === "babel.js"
+            ? `${src}/src/babel/index.ts`
+            : `${src}/src/${filename.slice(0, -3) + ".ts"}`;
         yield {
           src,
           format: USE_ESM ? "esm" : "cjs",
           dest: "lib",
-          input: getIndexFromPackage(src),
+          filename,
+          input,
         };
-      } else if (pkgJSON.bin) {
-        for (const binPath of Object.values(pkgJSON.bin)) {
-          const filename = binPath.slice(binPath.lastIndexOf("/") + 1);
-          const input =
-            dir === "babel-cli" && filename === "babel.js"
-              ? `${src}/src/babel/index.ts`
-              : `${src}/src/${filename.slice(0, -3) + ".ts"}`;
-          yield {
-            src,
-            format: USE_ESM ? "esm" : "cjs",
-            dest: "lib",
-            filename,
-            input,
-          };
-        }
       }
     }
   }
@@ -732,7 +738,25 @@ const cjsBundles = [
   { src: "packages/babel-parser" },
 ];
 
-const dtsBundles = ["packages/babel-types"];
+const dtsBundles = bool(process.env.BABEL_8_BREAKING)
+  ? Array.from(
+      packagesIterator(
+        new Set([
+          // CLIs
+          "packages/babel-cli",
+          "packages/babel-node",
+          // This will be just JSON
+          "packages/babel-compat-data",
+          // Not meant to be consumed manually
+          "packages/babel-runtime",
+          "packages/babel-runtime-corejs2",
+          "packages/babel-runtime-corejs3",
+          // TODO: Add type definitions
+          "packages/babel-register",
+        ])
+      )
+    )
+  : ["packages/babel-types"];
 
 const standaloneBundle = [
   {
@@ -757,8 +781,9 @@ gulp.task("generate-type-helpers", () => {
     generateTypeHelpers("constants"),
     generateTypeHelpers("validators"),
     generateTypeHelpers("ast-types"),
-    generateTraverseHelpers("asserts"),
-    generateTraverseHelpers("validators"),
+    generateTraverseHelpers("asserts", "path"),
+    generateTraverseHelpers("validators", "path"),
+    generateTraverseHelpers("visitor-types"),
   ]);
 });
 
@@ -777,11 +802,7 @@ gulp.task(
   gulp.series("generate-standalone", "rollup-babel-standalone")
 );
 
-gulp.task("copy-dts", () => copyDts(dtsBundles));
-gulp.task(
-  "bundle-dts",
-  gulp.series("copy-dts", () => buildRollupDts(dtsBundles))
-);
+gulp.task("bundle-dts", () => buildRollupDts(dtsBundles));
 
 gulp.task("build-babel", () => buildBabel(true, /* exclude */ libBundles));
 
@@ -837,7 +858,7 @@ ${fs.readFileSync(path.join(path.dirname(input), "license"), "utf8")}*/
 gulp.task("build-cjs-bundles", () => {
   if (!USE_ESM) {
     log(
-      chalk.yellow(
+      colors.yellow(
         "Skipping CJS-compat bundles for ESM-based builds, because not compiling to ESM"
       )
     );

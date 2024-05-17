@@ -1,5 +1,5 @@
 FLOW_COMMIT = 105ad30f566f401db9cafcb49cd2831fb29e87c5
-TEST262_COMMIT = af3890a10a41904de7f57900f36af910a21a8686
+TEST262_COMMIT = 081808bebd96bc9c755300e8c3eb59d8bef578f1
 TYPESCRIPT_COMMIT = d87d0adcd30ac285393bf3bfbbb4d94d50c4f3c9
 
 SOURCES = packages codemods eslint
@@ -55,12 +55,16 @@ build-plugin-transform-runtime-dist:
 watch:
 	$(MAKEJS) watch
 
-code-quality: tscheck lint
+code-quality: lint
 
 tscheck:
 	$(MAKEJS) tscheck
 
-lint-ci: lint check-compat-data
+clean-ts:
+	$(MAKEJS) clean-ts
+
+lint-ci:
+	$(MAKEJS) lint-ci
 
 generate-readme:
 	$(NODE) scripts/generators/readmes.js
@@ -87,7 +91,7 @@ test: lint test-only
 clone-license:
 	$(MAKEJS) clone-license
 
-prepublish-prepare-dts:
+prepublish-prepare-dts: tscheck
 	$(MAKEJS) prepublish-prepare-dts
 
 prepublish-build:
@@ -110,6 +114,9 @@ use-esm:
 
 clean-lib:
 	$(MAKEJS) clean-lib
+
+clean-node-modules:
+	$(MAKEJS) clean-node-modules
 
 clean-runtime-helpers:
 	$(MAKEJS) clean-runtime-helpers

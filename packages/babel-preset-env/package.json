@@ -1,6 +1,6 @@
 {
   "name": "@babel/preset-env",
-  "version": "7.24.0",
+  "version": "7.24.5",
   "description": "A Babel preset for each environment.",
   "author": "The Babel Team (https://babel.dev/team)",
   "homepage": "https://babel.dev/docs/en/next/babel-preset-env",
@@ -20,6 +20,7 @@
     "@babel/helper-compilation-targets": "workspace:^",
     "@babel/helper-plugin-utils": "workspace:^",
     "@babel/helper-validator-option": "workspace:^",
+    "@babel/plugin-bugfix-firefox-class-in-computed-class-key": "workspace:^",
     "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression": "workspace:^",
     "@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining": "workspace:^",
     "@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly": "workspace:^",
@@ -92,7 +93,7 @@
     "@babel/plugin-transform-unicode-sets-regex": "workspace:^",
     "@babel/preset-modules": "0.1.6-no-external-plugins",
     "babel-plugin-polyfill-corejs2": "condition:BABEL_8_BREAKING ? : ^0.4.10 (peer:@babel/core) (esm:default)",
-    "babel-plugin-polyfill-corejs3": "^0.10.1",
+    "babel-plugin-polyfill-corejs3": "^0.10.4",
     "babel-plugin-polyfill-regenerator": "condition:BABEL_8_BREAKING ? : ^0.6.1 (peer:@babel/core) (esm:default)",
     "core-js-compat": "^3.31.0",
     "semver": "condition:BABEL_8_BREAKING ? ^7.3.4 : ^6.3.1"
@@ -113,7 +114,7 @@
     "BABEL_8_BREAKING": [
       {
         "engines": {
-          "node": "^16.20.0 || ^18.16.0 || >=20.0.0"
+          "node": "^18.20.0 || ^20.10.0 || >=21.0.0"
         }
       },
       {
@@ -128,7 +129,10 @@
     ]
   },
   "exports": {
-    ".": "./lib/index.js",
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
     "./package.json": "./package.json"
   },
   "type": "commonjs"

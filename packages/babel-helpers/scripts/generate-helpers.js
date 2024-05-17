@@ -3,13 +3,12 @@ import fs from "fs";
 import { join } from "path";
 import { URL, fileURLToPath } from "url";
 import { minify } from "terser";
-import { transformSync } from "@babel/core";
-import presetTypescript from "@babel/preset-typescript";
+import { babel, presetTypescript } from "$repo-utils/babel-top-level";
 import { gzipSync } from "zlib";
 import { IS_BABEL_8 } from "$repo-utils";
 
 const HELPERS_FOLDER = new URL("../src/helpers", import.meta.url);
-const IGNORED_FILES = new Set(["package.json"]);
+const IGNORED_FILES = new Set(["package.json", "tsconfig.json"]);
 
 export default async function generateHelpers() {
   let output = `/*
@@ -18,16 +17,26 @@ export default async function generateHelpers() {
  */
 
 import template from "@babel/template";
+import type * as t from "@babel/types";
 
-function helper(minVersion: string, source: string) {
+interface Helper {
+  minVersion: string;
+  ast: () => t.Program;
+}
+
+function helper(minVersion: string, source: string): Helper {
   return Object.freeze({
     minVersion,
     ast: () => template.program.ast(source, { preserveComments: true }),
   })
 }
 
-export default Object.freeze({
+export { helpers as default };
+const helpers: Record<string, Helper> = {
+  __proto__: null,
 `;
+
+  let babel7extraOutput = "";
 
   for (const file of (await fs.promises.readdir(HELPERS_FOLDER)).sort()) {
     if (IGNORED_FILES.has(file)) continue;
@@ -52,14 +61,11 @@ export default Object.freeze({
     }
     const { minVersion } = minVersionMatch.groups;
 
-    if (IS_BABEL_8() && code.includes("@onlyBabel7")) {
-      continue;
-    }
-
+    const onlyBabel7 = code.includes("@onlyBabel7");
     const mangleFns = code.includes("@mangleFns");
     const noMangleFns = [];
 
-    code = transformSync(code, {
+    code = babel.transformSync(code, {
       configFile: false,
       babelrc: false,
       filename: filePath,
@@ -115,15 +121,33 @@ export default Object.freeze({
       })
     ).code;
 
-    output += `\
+    const helperStr = `\
   // size: ${code.length}, gzip size: ${gzipSync(code).length}
   ${JSON.stringify(helperName)}: helper(
     ${JSON.stringify(minVersion)},
     ${JSON.stringify(code)},
   ),
 `;
+
+    if (onlyBabel7) {
+      if (!IS_BABEL_8()) babel7extraOutput += helperStr;
+    } else {
+      output += helperStr;
+    }
   }
 
-  output += "});";
+  output += "};";
+
+  if (babel7extraOutput) {
+    output += `
+
+if (!process.env.BABEL_8_BREAKING) {
+  Object.assign(helpers, {
+    ${babel7extraOutput}
+  });
+}
+`;
+  }
+
   return output;
 }

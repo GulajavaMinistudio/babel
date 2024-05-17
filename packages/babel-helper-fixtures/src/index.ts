@@ -27,7 +27,7 @@ export interface TestFile extends TestIO {
 export interface Test {
   taskDir: string;
   title: string;
-  disabled: boolean;
+  disabled: boolean | string;
   options: TaskOptions;
   optionsDir: string;
   doNotSetSourceType: boolean;
@@ -53,10 +53,12 @@ export interface TaskOptions extends InputOptions {
   externalHelpers?: boolean;
   ignoreOutput?: boolean;
   minNodeVersion?: string;
+  minNodeVersionTransform?: string;
   sourceMap?: boolean;
   os?: string | string[];
   validateLogs?: boolean;
   throws?: boolean | string;
+  SKIP_babel7plugins_babel8core?: string;
 }
 
 type Suite = {
@@ -223,7 +225,12 @@ function pushTask(
     taskDir,
     optionsDir: taskOptsLoc ? path.dirname(taskOptsLoc) : null,
     title: humanize(taskName, true),
-    disabled: taskName[0] === ".",
+    disabled:
+      taskName[0] === "."
+        ? true
+        : (process.env.TEST_babel7plugins_babel8core &&
+            taskOpts.SKIP_babel7plugins_babel8core) ||
+          false,
     options: taskOpts,
     doNotSetSourceType: taskOpts.DO_NOT_SET_SOURCE_TYPE,
     externalHelpers:
@@ -257,6 +264,7 @@ function pushTask(
   delete taskOpts.BABEL_8_BREAKING;
   delete taskOpts.DO_NOT_SET_SOURCE_TYPE;
   delete taskOpts.SKIP_ON_PUBLISH;
+  delete taskOpts.SKIP_babel7plugins_babel8core;
 
   // If there's node requirement, check it before pushing task
   if (taskOpts.minNodeVersion) {
@@ -269,11 +277,32 @@ function pushTask(
     }
 
     if (semver.lt(nodeVersion, minimumVersion)) {
-      return;
+      if (test.actual.code) {
+        test.exec.code = null;
+      } else {
+        return;
+      }
     }
 
     // Delete to avoid option validation error
     delete taskOpts.minNodeVersion;
+  }
+
+  if (taskOpts.minNodeVersionTransform) {
+    const minimumVersion = semver.clean(taskOpts.minNodeVersionTransform);
+
+    if (minimumVersion == null) {
+      throw new Error(
+        `'minNodeVersionTransform' has invalid semver format: ${taskOpts.minNodeVersionTransform}`,
+      );
+    }
+
+    if (semver.lt(nodeVersion, minimumVersion)) {
+      return;
+    }
+
+    // Delete to avoid option validation error
+    delete taskOpts.minNodeVersionTransform;
   }
 
   if (taskOpts.os) {

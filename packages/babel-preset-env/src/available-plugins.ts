@@ -55,6 +55,7 @@ import transformUnicodeSetsRegex from "@babel/plugin-transform-unicode-sets-rege
 import bugfixAsyncArrowsInClass from "@babel/preset-modules/lib/plugins/transform-async-arrows-in-class/index.js";
 import bugfixEdgeDefaultParameters from "@babel/preset-modules/lib/plugins/transform-edge-default-parameters/index.js";
 import bugfixEdgeFunctionName from "@babel/preset-modules/lib/plugins/transform-edge-function-name/index.js";
+import bugfixFirefoxClassInComputedKey from "@babel/plugin-bugfix-firefox-class-in-computed-class-key";
 import bugfixTaggedTemplateCaching from "@babel/preset-modules/lib/plugins/transform-tagged-template-caching/index.js";
 import bugfixSafariBlockShadowing from "@babel/preset-modules/lib/plugins/transform-safari-block-shadowing/index.js";
 import bugfixSafariForShadowing from "@babel/preset-modules/lib/plugins/transform-safari-for-shadowing/index.js";
@@ -67,6 +68,8 @@ const availablePlugins = {
   "bugfix/transform-async-arrows-in-class": () => bugfixAsyncArrowsInClass,
   "bugfix/transform-edge-default-parameters": () => bugfixEdgeDefaultParameters,
   "bugfix/transform-edge-function-name": () => bugfixEdgeFunctionName,
+  "bugfix/transform-firefox-class-in-computed-class-key": () =>
+    bugfixFirefoxClassInComputedKey,
   "bugfix/transform-safari-block-shadowing": () => bugfixSafariBlockShadowing,
   "bugfix/transform-safari-for-shadowing": () => bugfixSafariForShadowing,
   "bugfix/transform-safari-id-destructuring-collision-in-function-expression":
@@ -133,6 +136,8 @@ const availablePlugins = {
 };
 
 export const minVersions = {};
+// TODO(Babel 8): Remove this
+export let legacyBabel7SyntaxPlugins: Set<string>;
 
 if (!process.env.BABEL_8_BREAKING) {
   /* eslint-disable no-restricted-globals */
@@ -153,7 +158,7 @@ if (!process.env.BABEL_8_BREAKING) {
   // This is a factory to create a function that returns a no-op plugn
   const e = () => () => () => ({});
 
-  Object.assign(availablePlugins, {
+  const legacyBabel7SyntaxPluginsLoaders = {
     "syntax-async-generators":
       USE_ESM || IS_STANDALONE
         ? e()
@@ -214,15 +219,21 @@ if (!process.env.BABEL_8_BREAKING) {
       USE_ESM || IS_STANDALONE
         ? e()
         : () => require("@babel/plugin-syntax-top-level-await"),
-  });
+  };
 
   // This is a CJS plugin that depends on a package from the monorepo, so it
   // breaks using ESM. Given that ESM builds are new enough to have this
   // syntax enabled by default, we can safely skip enabling it.
   if (!USE_ESM) {
     // @ts-expect-error unknown key
-    availablePlugins["unicode-sets-regex"] = IS_STANDALONE
+    legacyBabel7SyntaxPluginsLoaders["unicode-sets-regex"] = IS_STANDALONE
       ? e()
       : () => require("@babel/plugin-syntax-unicode-sets-regex");
   }
+
+  Object.assign(availablePlugins, legacyBabel7SyntaxPluginsLoaders);
+
+  legacyBabel7SyntaxPlugins = new Set(
+    Object.keys(legacyBabel7SyntaxPluginsLoaders),
+  );
 }

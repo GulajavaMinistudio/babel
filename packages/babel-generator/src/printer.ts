@@ -60,7 +60,10 @@ export type Format = {
     adjustMultilineComment: boolean;
     style: string;
   };
-  recordAndTupleSyntaxType: RecordAndTuplePluginOptions["syntaxType"];
+  /**
+   * @deprecated Removed in Babel 8, syntax type is always 'hash'
+   */
+  recordAndTupleSyntaxType?: RecordAndTuplePluginOptions["syntaxType"];
   jsescOption: jsescOptions;
   /**
    * @deprecated Removed in Babel 8, use `jsescOption` instead
@@ -661,7 +664,7 @@ class Printer {
     this._printStack.push(node);
 
     const oldInAux = this._insideAux;
-    this._insideAux = node.loc == undefined;
+    this._insideAux = node.loc == null;
     this._maybeAddAuxComment(this._insideAux && !oldInAux);
 
     const parenthesized = node.extra?.parenthesized as boolean | undefined;
@@ -706,7 +709,14 @@ class Printer {
 
     const loc = nodeType === "Program" || nodeType === "File" ? null : node.loc;
 
-    this.exactSource(loc, printMethod.bind(this, node, parent));
+    this.exactSource(
+      loc,
+      // We must use @ts-ignore because this error appears in VSCode but not
+      // when doing a full build?
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore https://github.com/microsoft/TypeScript/issues/58468
+      printMethod.bind(this, node, parent),
+    );
 
     if (shouldPrintParens) {
       this._printTrailingComments(node, parent);
@@ -1128,7 +1138,7 @@ class Printer {
             if (
               this._buf.hasContent() &&
               (comment.type === "CommentLine" ||
-                commentStartLine != commentEndLine)
+                commentStartLine !== commentEndLine)
             ) {
               offset = leadingCommentNewline = 1;
             }

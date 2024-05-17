@@ -97,7 +97,7 @@ function enforceEnginesNodeForPublicUnsetForPrivate({ Yarn }) {
       if (!workspace.manifest.conditions?.BABEL_8_BREAKING?.[0].private) {
         workspace.set(
           "conditions.BABEL_8_BREAKING.0.engines.node",
-          "^16.20.0 || ^18.16.0 || >=20.0.0"
+          "^18.20.0 || ^20.10.0 || >=21.0.0"
         );
       }
 
@@ -284,20 +284,7 @@ function enforceBabelCoreNotInDeps({ Yarn }) {
       workspace.pkg.peerDependencies.has("@babel/core") &&
       !workspace.manifest.dependencies?.["@babel/core"]
     ) {
-      if (
-        process.env.BABEL_CORE_DEV_DEP_VERSION &&
-        workspace.ident &&
-        babel7plugins_babel8core.has(
-          workspace.ident.replace("@babel/", "babel-")
-        )
-      ) {
-        workspace.set(
-          "devDependencies['@babel/core']",
-          process.env.BABEL_CORE_DEV_DEP_VERSION
-        );
-      } else {
-        workspace.set("devDependencies['@babel/core']", "workspace:^");
-      }
+      workspace.set("devDependencies['@babel/core']", "workspace:^");
     }
     if (
       workspace.ident !== null &&
@@ -353,9 +340,29 @@ function enforceExports({ Yarn }) {
     }
 
     workspace.set("exports", {
-      ".": "./lib/index.js",
+      ".": {
+        types: "./lib/index.d.ts",
+        default: "./lib/index.js",
+      },
       "./package.json": "./package.json",
     });
+  }
+}
+
+function enforceBabelCodeVersionFor78Compat({ Yarn }, version) {
+  for (const workspace of Yarn.workspaces()) {
+    if (workspace.cwd === ".") {
+      workspace.set("devDependencies['@babel/core']", version);
+    } else if (
+      workspace.ident === "@babel/helper-transform-fixture-test-runner"
+    ) {
+      workspace.set("dependencies['@babel/core']", version);
+    } else if (
+      workspace.ident &&
+      babel7plugins_babel8core.has(workspace.ident.replace("@babel/", "babel-"))
+    ) {
+      workspace.set("devDependencies['@babel/core']", version);
+    }
   }
 }
 
@@ -375,6 +382,13 @@ module.exports = {
     enforceNoDualTypeDependencies(ctx);
     enforceRuntimeCorejs2DependsOnCorejs2(ctx);
     enforceBabelHelperBabelDeps(ctx);
-    enforceBabelCoreNotInDeps(ctx);
+    if (process.env.BABEL_CORE_DEV_DEP_VERSION) {
+      enforceBabelCodeVersionFor78Compat(
+        ctx,
+        process.env.BABEL_CORE_DEV_DEP_VERSION
+      );
+    } else {
+      enforceBabelCoreNotInDeps(ctx);
+    }
   },
 };

@@ -57,12 +57,11 @@ export default declare((api, opts: Options) => {
           let bodyScope: Scope | null;
           if (body.isBlockStatement()) {
             bodyScope = body.scope;
-
-            const bindings = getLoopBodyBindings(path);
-            for (const binding of bindings) {
-              const { capturedInClosure } = getUsageInBody(binding, path);
-              if (capturedInClosure) markNeedsBodyWrap();
-            }
+          }
+          const bindings = getLoopBodyBindings(path);
+          for (const binding of bindings) {
+            const { capturedInClosure } = getUsageInBody(binding, path);
+            if (capturedInClosure) markNeedsBodyWrap();
           }
 
           const captured: string[] = [];
@@ -111,7 +110,7 @@ export default declare((api, opts: Options) => {
           if (needsBodyWrap) {
             const varPath = wrapLoopBody(path, captured, updatedBindingsUsages);
 
-            if (headPath?.isVariableDeclaration<t.Node>()) {
+            if (headPath?.isVariableDeclaration()) {
               // If we wrap the loop body, we transform the var
               // declaration in the loop head now, to avoid
               // invalid references that break other plugins:

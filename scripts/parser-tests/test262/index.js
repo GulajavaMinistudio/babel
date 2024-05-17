@@ -12,7 +12,7 @@ const ignoredFeaturesJsonPath = new URL(
 );
 const ignoredFeatures = (
   await import(ignoredFeaturesJsonPath, {
-    assert: { type: "json" },
+    with: { type: "json" },
   })
 ).default;
 
@@ -40,6 +40,7 @@ const featuresToPlugins = new Map([
       "decoratorAutoAccessors",
     ],
   ],
+  ["explicit-resource-management", "explicitResourceManagement"],
 ]);
 
 const unmappedFeatures = new Set();

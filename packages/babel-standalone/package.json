@@ -1,6 +1,6 @@
 {
   "name": "@babel/standalone",
-  "version": "7.24.0",
+  "version": "7.24.5",
   "description": "Standalone build of Babel for use in non-Node.js environments.",
   "main": "./babel.js",
   "files": [
@@ -121,7 +121,7 @@
     "@babel/template": "workspace:^",
     "@babel/traverse": "workspace:^",
     "@babel/types": "workspace:^",
-    "acorn": "^8.7.0",
+    "acorn": "^8.11.3",
     "jsdom": "^22.1.0"
   },
   "keywords": [
@@ -152,7 +152,7 @@
     "BABEL_8_BREAKING": [
       {
         "engines": {
-          "node": "^16.20.0 || ^18.16.0 || >=20.0.0"
+          "node": "^18.20.0 || ^20.10.0 || >=21.0.0"
         }
       },
       {

@@ -357,7 +357,7 @@ export default /* @no-mangle */ function applyDecs2311(
     var newValue = Class;
 
     for (var i = decs.length - 1; i >= 0; i -= decoratorsHaveThis ? 2 : 1) {
-      var dec = (decs as Function[])[i],
+      var dec = assertCallable(decs[i], "A decorator", "be", true) as Function,
         decThis = decoratorsHaveThis ? decs[i - 1] : void 0;
 
       var decoratorFinishedRef: DecoratorFinishedRef = {};
@@ -373,7 +373,7 @@ export default /* @no-mangle */ function applyDecs2311(
           initializer: Function,
         ) {
           if (decoratorFinishedRef.v) {
-            throw new Error(
+            throw new TypeError(
               "attempted to call addInitializer after decoration was finished",
             );
           }
@@ -523,9 +523,10 @@ export default /* @no-mangle */ function applyDecs2311(
         var kind = decInfo[1];
         var kindOnly: PROP_KIND = kind & PROP_KIND.KIND_MASK;
         if (
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison, eqeqeq
           (kind & PROP_KIND.STATIC) == isStatic &&
           // @ts-expect-error comparing a boolean with 0 | 1
+          // eslint-disable-next-line eqeqeq
           !kindOnly == isField
         ) {
           var name = decInfo[2];

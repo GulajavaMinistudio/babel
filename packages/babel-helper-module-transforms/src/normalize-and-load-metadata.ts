@@ -1,9 +1,8 @@
 import { basename, extname } from "path";
-import type * as t from "@babel/types";
+import type { types as t, NodePath } from "@babel/core";
 
 import { isIdentifierName } from "@babel/helper-validator-identifier";
 import splitExportDeclaration from "@babel/helper-split-export-declaration";
-import type { NodePath } from "@babel/traverse";
 
 export interface ModuleMetadata {
   exportName: string;
@@ -549,7 +548,6 @@ function getLocalExportMetadata(
         declaration.isFunctionDeclaration() ||
         declaration.isClassDeclaration()
       ) {
-        // @ts-expect-error todo(flow->ts): improve babel-types
         getLocalMetadata(declaration.get("id")).names.push("default");
       } else {
         // These should have been removed by the nameAnonymousExports() call.
@@ -594,9 +592,7 @@ function removeImportExportDeclarations(programPath: NodePath<t.Program>) {
       ) {
         // @ts-expect-error todo(flow->ts): avoid mutations
         declaration._blockHoist = child.node._blockHoist;
-        child.replaceWith(
-          declaration as NodePath<t.FunctionDeclaration | t.ClassDeclaration>,
-        );
+        child.replaceWith(declaration);
       } else {
         // These should have been removed by the nameAnonymousExports() call.
         throw declaration.buildCodeFrameError(

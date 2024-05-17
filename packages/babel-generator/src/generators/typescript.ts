@@ -414,7 +414,7 @@ export function TSIndexedAccessType(
 }
 
 export function TSMappedType(this: Printer, node: t.TSMappedType) {
-  const { nameType, optional, readonly, typeParameter } = node;
+  const { nameType, optional, readonly, typeParameter, typeAnnotation } = node;
   this.token("{");
   this.space();
   if (readonly) {
@@ -447,9 +447,12 @@ export function TSMappedType(this: Printer, node: t.TSMappedType) {
     tokenIfPlusMinus(this, optional);
     this.token("?");
   }
-  this.token(":");
-  this.space();
-  this.print(node.typeAnnotation, node);
+
+  if (typeAnnotation) {
+    this.token(":");
+    this.space();
+    this.print(typeAnnotation, node);
+  }
   this.space();
   this.token("}");
 }

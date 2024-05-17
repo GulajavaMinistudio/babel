@@ -1,8 +1,8 @@
 import "shelljs/make.js";
 import path from "path";
-import { execFileSync } from "child_process";
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
 import semver from "semver";
+import { execaSync } from "execa";
 
 /**
  * @type {import("shelljs")}
@@ -21,16 +21,6 @@ const target = new Proxy(global.target, {
 });
 const SOURCES = ["packages", "codemods", "eslint"];
 
-const EslintArgs = [
-  "eslint",
-  "scripts",
-  "benchmark",
-  ...SOURCES,
-  "*.{js,cjs,mjs,ts}",
-  "--format",
-  "codeframe",
-];
-
 const YARN_PATH = shell.which("yarn").stdout;
 const NODE_PATH = process.execPath; // `yarn node` is so slow on Windows
 
@@ -48,20 +38,20 @@ function exec(executable, args, cwd, inheritStdio = true) {
   );
 
   try {
-    return execFileSync(executable, args, {
+    return execaSync(executable, args, {
       stdio: inheritStdio ? "inherit" : undefined,
       cwd: cwd && path.resolve(cwd),
       env: process.env,
-    });
+    }).stdout;
   } catch (error) {
-    if (inheritStdio && error.status != 0) {
+    if (inheritStdio && error.exitCode !== 0) {
       console.error(
         new Error(
-          `\ncommand: ${executable} ${args.join(" ")}\ncode: ${error.status}`
+          `\ncommand: ${executable} ${args.join(" ")}\ncode: ${error.exitCode}`
         )
       );
       // eslint-disable-next-line no-process-exit
-      process.exit(error.status);
+      process.exit(error.exitCode);
     }
     throw error;
   }
@@ -87,7 +77,7 @@ function env(fun, env) {
  */
 
 target["clean-all"] = function () {
-  shell.rm("-rf", ["node_modules", "package-lock.json", ".changelog"]);
+  shell.rm("-rf", ["package-lock.json", ".changelog"]);
 
   SOURCES.forEach(source => {
     shell.rm("-rf", `${source}/*/test/tmp`);
@@ -96,6 +86,14 @@ target["clean-all"] = function () {
 
   target["clean"]();
   target["clean-lib"]();
+  target["clean-node-modules"]();
+};
+
+target["clean-node-modules"] = function () {
+  shell.rm("-rf", "node_modules");
+  SOURCES.forEach(source => {
+    shell.rm("-rf", `${source}/*/node_modules`);
+  });
 };
 
 target["clean"] = function () {
@@ -172,7 +170,7 @@ target["bootstrap"] = function () {
 target["build"] = function () {
   target["build-no-bundle"]();
 
-  if (process.env.BABEL_COVERAGE != "true") {
+  if (process.env.BABEL_COVERAGE !== "true") {
     target["build-standalone"]();
   }
 };
@@ -287,20 +285,32 @@ target["prepublish-build-standalone"] = function () {
 };
 
 target["prepublish-prepare-dts"] = function () {
+  target["clean-ts"]();
   target["tscheck"]();
+  target["prepublish-prepare-dts-no-clean"]();
+};
 
+target["prepublish-prepare-dts-no-clean"] = function () {
   yarn(["gulp", "bundle-dts"]);
-
   target["build-typescript-legacy-typings"]();
+  yarn(["tsc", "-p", "tsconfig.dts-bundles.json"]);
 };
 
 target["tscheck"] = function () {
   target["generate-tsconfig"]();
+  node(["scripts/parallel-tsc/tsc.js", "."]);
+  target["tscheck-helpers"]();
+};
 
-  // ts doesn't generate declaration files after we remove the output directory by manually when incremental==true
+target["tscheck-helpers"] = function () {
+  yarn(["tsc", "-p", "./packages/babel-helpers/src/helpers/tsconfig.json"]);
+};
+
+target["clean-ts"] = function () {
+  // ts doesn't generate declaration files after we remove the output directory manually when incremental==true
   shell.rm("-rf", "tsconfig.tsbuildinfo");
+  shell.rm("-rf", "*/*/tsconfig.tsbuildinfo");
   shell.rm("-rf", "dts");
-  yarn(["tsc", "-b", "."]);
 };
 
 target["generate-tsconfig"] = function () {
@@ -331,15 +341,53 @@ target["clone-license"] = function () {
  * DEV
  */
 
-target["lint"] = function () {
-  env(
-    () => {
-      yarn(EslintArgs);
-    },
-    {
-      BABEL_ENV: "test",
-    }
+function eslint(...extraArgs) {
+  const eslintArgs = ["--format", "codeframe", ...extraArgs.filter(Boolean)];
+
+  const packagesPackages = readdirSync("packages").filter(n =>
+    existsSync(`packages/${n}/package.json`)
   );
+  const chunks = [];
+  // Linting everything at the same time needs too much memory and crashes
+  // Do it in batches packages
+  for (let i = 0, chunkSize = 40; i < packagesPackages.length; i += chunkSize) {
+    chunks.push([
+      `packages/{${packagesPackages.slice(i, i + chunkSize)}}/**/*`,
+    ]);
+  }
+  const rest = [
+    "eslint",
+    "codemods",
+    "scripts",
+    "benchmark",
+    "*.{js,cjs,mjs,ts}",
+  ];
+  chunks.push(rest);
+
+  if (process.env.ESLINT_GO_BRRRR) {
+    // Run as a single process. Needs a lot of memory (12GB).
+    env(() => yarn(["eslint", "packages", ...rest, ...eslintArgs]), {
+      BABEL_ENV: "test",
+      NODE_OPTIONS: "--max-old-space-size=16384",
+    });
+  } else {
+    for (const chunk of chunks) {
+      env(() => yarn(["eslint", ...chunk, ...eslintArgs]), {
+        BABEL_ENV: "test",
+      });
+    }
+  }
+}
+
+target["lint"] = function () {
+  env(() => target["tscheck"](), { TSCHECK_SILENT: "true" });
+  eslint();
+};
+
+target["lint-ci"] = function () {
+  target["tscheck"]();
+  eslint();
+  target["prepublish-prepare-dts-no-clean"]();
 };
 
 target["fix"] = function () {
@@ -348,7 +396,8 @@ target["fix"] = function () {
 };
 
 target["fix-js"] = function () {
-  yarn([...EslintArgs, "--fix"]);
+  env(() => target["tscheck"](), { TSCHECK_SILENT: "true" });
+  eslint("--fix");
 };
 
 target["fix-json"] = function () {

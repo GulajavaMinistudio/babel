@@ -2,7 +2,8 @@ import fs from "fs";
 
 import commander from "commander";
 import { version, DEFAULT_EXTENSIONS } from "@babel/core";
-import glob from "glob";
+import * as glob from "glob";
+import { alphasort } from "./util.ts";
 
 import type { InputOptions } from "@babel/core";
 
@@ -213,7 +214,13 @@ export default function parseArgv(args: Array<string>): CmdOptions | null {
   const errors: string[] = [];
 
   let filenames = commander.args.reduce(function (globbed: string[], input) {
-    let files = glob.sync(input);
+    let files = process.env.BABEL_8_BREAKING
+      ? // glob 9+ no longer sorts the result, here we maintain the glob 7 behaviour
+        // https://github.com/isaacs/node-glob/blob/c3cd57ae128faa0e9190492acc743bb779ac4054/common.js#L151
+        glob.sync(input, { dotRelative: true }).sort(alphasort)
+      : // @ts-expect-error When USE_ESM is true and BABEL_8_BREAKING is off,
+        // the glob package is an ESM wrapper of the CJS glob 7
+        (USE_ESM ? glob.default.sync : glob.sync)(input);
     if (!files.length) files = [input];
     globbed.push(...files);
     return globbed;
@@ -362,10 +369,12 @@ function booleanify(val: "true" | 1): true;
 function booleanify(val: any): any {
   if (val === undefined) return undefined;
 
+  // eslint-disable-next-line eqeqeq
   if (val === "true" || val == 1) {
     return true;
   }
 
+  // eslint-disable-next-line eqeqeq
   if (val === "false" || val == 0 || !val) {
     return false;
   }
