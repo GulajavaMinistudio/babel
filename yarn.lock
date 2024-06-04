@@ -230,7 +230,7 @@ __metadata:
     "@types/fs-readdir-recursive": "npm:^1.1.0"
     "@types/glob": "npm:^7.2.0"
     chokidar: "npm:^3.4.0"
-    commander: "npm:^4.0.1"
+    commander: "condition:BABEL_8_BREAKING ? ^12.1.0 : ^6.2.0 (esm:program|default)"
     convert-source-map: "npm:^2.0.0"
     fs-readdir-recursive: "npm:^1.1.0"
     glob: "condition:BABEL_8_BREAKING ? ^10.3.12 : ^7.2.0 (esm:sync|default)"
@@ -571,6 +571,8 @@ __metadata:
     "@babel/helper-annotate-as-pure": "workspace:^"
     "@babel/traverse": "workspace:^"
     "@babel/types": "workspace:^"
+  peerDependencies:
+    "@babel/core": ^7.0.0
   languageName: unknown
   linkType: soft
 
@@ -726,6 +728,8 @@ __metadata:
     "@jridgewell/gen-mapping": "npm:^0.3.5"
     "@types/semver": "npm:^7.3.4"
     semver: "condition:BABEL_8_BREAKING ? ^7.3.4 : ^6.3.1"
+  peerDependencies:
+    "@babel/core": ^7.0.0
   languageName: unknown
   linkType: soft
 
@@ -897,7 +901,6 @@ __metadata:
     "@babel/helper-simple-access": "workspace:^"
     "@babel/helper-split-export-declaration": "workspace:^"
     "@babel/helper-validator-identifier": "workspace:^"
-    "@babel/traverse": "workspace:^"
   peerDependencies:
     "@babel/core": ^7.0.0
   languageName: unknown
@@ -949,6 +952,8 @@ __metadata:
   resolution: "@babel/helper-plugin-utils@workspace:packages/babel-helper-plugin-utils"
   dependencies:
     "@babel/core": "workspace:^"
+  peerDependencies:
+    "@babel/core": ^7.0.0
   languageName: unknown
   linkType: soft
 
@@ -1201,12 +1206,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@babel/helpers@workspace:packages/babel-helpers"
   dependencies:
-    "@babel/core": "workspace:^"
     "@babel/generator": "workspace:^"
     "@babel/helper-plugin-test-runner": "workspace:^"
     "@babel/parser": "workspace:^"
     "@babel/template": "workspace:^"
-    "@babel/traverse": "workspace:^"
     "@babel/types": "workspace:^"
     regenerator-runtime: "npm:^0.14.0"
   languageName: unknown
@@ -1256,7 +1259,7 @@ __metadata:
     "@babel/register": "workspace:^"
     "@babel/runtime": "workspace:^"
     "@types/v8flags": "npm:^3.1.1"
-    commander: "npm:^4.0.1"
+    commander: "condition:BABEL_8_BREAKING ? ^12.1.0 : ^6.2.0 (esm:program|default)"
     core-js: "npm:^3.30.2"
     node-environment-flags: "condition:BABEL_8_BREAKING ? : ^1.0.5"
     regenerator-runtime: "npm:^0.14.0"
@@ -7170,7 +7173,6 @@ __metadata:
     semver: "npm:^6.3.1"
     shelljs: "npm:^0.8.5"
     test262-stream: "npm:^1.4.0"
-    through2: "npm:^4.0.0"
     typescript: "npm:^5.4.5"
     typescript-eslint: "npm:^7.8.0"
   languageName: unknown
@@ -8113,6 +8115,30 @@ __metadata:
   dependencies:
     delayed-stream: "npm:~1.0.0"
   checksum: 10/2e969e637d05d09fa50b02d74c83a1186f6914aae89e6653b62595cc75a221464f884f55f231b8f4df7a49537fba60bdc0427acd2bf324c09a1dbb84837e36e4
+  languageName: node
+  linkType: hard
+
+"commander-BABEL_8_BREAKING-false@npm:commander@^6.2.0":
+  version: 6.2.1
+  resolution: "commander@npm:6.2.1"
+  checksum: 10/25b88c2efd0380c84f7844b39cf18510da7bfc5013692d68cdc65f764a1c34e6c8a36ea6d72b6620e3710a930cf8fab2695bdec2bf7107a0f4fa30a3ef3b7d0e
+  languageName: node
+  linkType: hard
+
+"commander-BABEL_8_BREAKING-true@npm:commander@^12.1.0":
+  version: 12.1.0
+  resolution: "commander@npm:12.1.0"
+  checksum: 10/cdaeb672d979816853a4eed7f1310a9319e8b976172485c2a6b437ed0db0a389a44cfb222bfbde772781efa9f215bdd1b936f80d6b249485b465c6cb906e1f93
+  languageName: node
+  linkType: hard
+
+"commander@condition:BABEL_8_BREAKING ? ^12.1.0 : ^6.2.0 (esm:program|default)":
+  version: 0.0.0-condition-c20610
+  resolution: "commander@condition:BABEL_8_BREAKING?^12.1.0:^6.2.0(esm:program|default)#c20610"
+  dependencies:
+    commander-BABEL_8_BREAKING-false: "npm:commander@^6.2.0"
+    commander-BABEL_8_BREAKING-true: "npm:commander@^12.1.0"
+  checksum: 10/458a757b162d00d72fe2b0541253a182dcce77378adb4f3c3233bf2c0a1bb2de3ea481ad7525852a603632fbea0d2a09e10ece50c5e975e5770da9d2ef436826
   languageName: node
   linkType: hard
 
@@ -14706,7 +14732,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"readable-stream@npm:3, readable-stream@npm:^3.6.0":
+"readable-stream@npm:^3.6.0":
   version: 3.6.2
   resolution: "readable-stream@npm:3.6.2"
   dependencies:
@@ -16405,15 +16431,6 @@ __metadata:
     readable-stream: "npm:~2.3.6"
     xtend: "npm:~4.0.1"
   checksum: 10/cd71f7dcdc7a8204fea003a14a433ef99384b7d4e31f5497e1f9f622b3cf3be3691f908455f98723bdc80922a53af7fa10c3b7abbe51c6fd3d536dbc7850e2c4
-  languageName: node
-  linkType: hard
-
-"through2@npm:^4.0.0":
-  version: 4.0.2
-  resolution: "through2@npm:4.0.2"
-  dependencies:
-    readable-stream: "npm:3"
-  checksum: 10/72c246233d9a989bbebeb6b698ef0b7b9064cb1c47930f79b25d87b6c867e075432811f69b7b2ac8da00ca308191c507bdab913944be8019ac43b036ce88f6ba
   languageName: node
   linkType: hard
 
