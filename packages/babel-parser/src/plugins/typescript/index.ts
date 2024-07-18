@@ -1,5 +1,3 @@
-/*:: declare var invariant; */
-
 import type State from "../../tokenizer/state.ts";
 import {
   tokenIsIdentifier,
@@ -29,9 +27,6 @@ import type { Pattern } from "../../types.ts";
 import type { Expression } from "../../types.ts";
 import type { IJSXParserMixin } from "../jsx/index.ts";
 import { ParseBindingListFlags } from "../../parser/lval.ts";
-
-const getOwn = <T extends {}>(object: T, key: keyof T) =>
-  Object.hasOwn(object, key) && object[key];
 
 type TsModifier =
   | "readonly"
@@ -275,9 +270,7 @@ type ClassWithMixin<
 
 export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
   class TypeScriptParserMixin extends superClass implements Parser {
-    getScopeHandler(): {
-      new (...args: any): TypeScriptScopeHandler;
-    } {
+    getScopeHandler(): new (...args: any) => TypeScriptScopeHandler {
       return TypeScriptScopeHandler;
     }
 
@@ -322,7 +315,7 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
       }
 
       const modifier = this.state.value;
-      if (allowedModifiers.indexOf(modifier) !== -1) {
+      if (allowedModifiers.includes(modifier)) {
         if (stopOnStartOfClassStaticBlock && this.tsIsStartOfStaticBlocks()) {
           return undefined;
         }
@@ -2338,7 +2331,7 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
       return elt;
     }
 
-    isSimpleParameter(node: N.Pattern | N.TSParameterProperty) {
+    isSimpleParameter(node: N.Pattern | N.TSParameterProperty): boolean {
       return (
         (node.type === "TSParameterProperty" &&
           super.isSimpleParameter(node.parameter)) ||
@@ -2510,7 +2503,6 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
           if (tokenIsTemplate(this.state.type)) {
             const result = super.parseTaggedTemplateExpression(
               base,
-
               startLoc,
               state,
             );
@@ -3687,38 +3679,39 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
       }
     }
 
-    // @ts-expect-error plugin overrides interfaces
     isValidLVal(
       type:
         | "TSTypeCastExpression"
         | "TSParameterProperty"
         | "TSNonNullExpression"
+        | "TSInstantiationExpression"
         | "TSAsExpression"
         | "TSSatisfiesExpression"
         | "TSTypeAssertion",
       isUnparenthesizedInAssign: boolean,
       binding: BindingFlag,
     ) {
-      return (
-        getOwn(
-          {
-            // Allow "typecasts" to appear on the left of assignment expressions,
-            // because it may be in an arrow function.
-            // e.g. `const f = (foo: number = 0) => foo;`
-            TSTypeCastExpression: true,
-            TSParameterProperty: "parameter",
-            TSNonNullExpression: "expression",
-            TSInstantiationExpression: "expression",
-            TSAsExpression: (binding !== BindingFlag.TYPE_NONE ||
-              !isUnparenthesizedInAssign) && ["expression", true],
-            TSSatisfiesExpression: (binding !== BindingFlag.TYPE_NONE ||
-              !isUnparenthesizedInAssign) && ["expression", true],
-            TSTypeAssertion: (binding !== BindingFlag.TYPE_NONE ||
-              !isUnparenthesizedInAssign) && ["expression", true],
-          },
-          type,
-        ) || super.isValidLVal(type, isUnparenthesizedInAssign, binding)
-      );
+      switch (type) {
+        // Allow "typecasts" to appear on the left of assignment expressions,
+        // because it may be in an arrow function.
+        // e.g. `const f = (foo: number = 0) => foo;`
+        case "TSTypeCastExpression":
+          return true;
+        case "TSParameterProperty":
+          return "parameter";
+        case "TSNonNullExpression":
+        case "TSInstantiationExpression":
+          return "expression";
+        case "TSAsExpression":
+        case "TSSatisfiesExpression":
+        case "TSTypeAssertion":
+          return (
+            (binding !== BindingFlag.TYPE_NONE || !isUnparenthesizedInAssign) &&
+            (["expression", true] as [string, boolean])
+          );
+        default:
+          return super.isValidLVal(type, isUnparenthesizedInAssign, binding);
+      }
     }
 
     parseBindingAtom(): N.Pattern {
@@ -3905,12 +3898,15 @@ export default (superClass: ClassWithMixin<typeof Parser, IJSXParserMixin>) =>
     }
 
     tsInAmbientContext<T>(cb: () => T): T {
-      const oldIsAmbientContext = this.state.isAmbientContext;
+      const { isAmbientContext: oldIsAmbientContext, strict: oldStrict } =
+        this.state;
       this.state.isAmbientContext = true;
+      this.state.strict = false;
       try {
         return cb();
       } finally {
         this.state.isAmbientContext = oldIsAmbientContext;
+        this.state.strict = oldStrict;
       }
     }
 

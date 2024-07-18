@@ -393,10 +393,10 @@ function get(
   if (parts.length === 1) {
     // "foo"
     // @ts-expect-error key may not index T
-    return this._getKey(key, context);
+    return _getKey.call(this, key, context);
   } else {
     // "foo.bar"
-    return this._getPattern(parts, context);
+    return _getPattern.call(this, parts, context);
   }
 }
 
@@ -520,9 +520,7 @@ function getBindingIdentifierPaths(
     if (!id) continue;
     if (!id.node) continue;
 
-    const keys =
-      // @ts-expect-error _getBindingIdentifiers.keys do not cover all node types
-      _getBindingIdentifiers.keys[id.node.type];
+    const keys = _getBindingIdentifiers.keys[id.node.type];
 
     if (id.isIdentifier()) {
       if (duplicates) {
