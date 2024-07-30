@@ -226,6 +226,8 @@ const methods = {
   ensureBlock: NodePath_conversion.ensureBlock,
   unwrapFunctionEnvironment: NodePath_conversion.unwrapFunctionEnvironment,
   arrowFunctionToExpression: NodePath_conversion.arrowFunctionToExpression,
+  splitExportDeclaration: NodePath_conversion.splitExportDeclaration,
+  ensureFunctionName: NodePath_conversion.ensureFunctionName,
 
   // NodePath_introspection
   matchesPattern: NodePath_introspection.matchesPattern,
@@ -266,6 +268,8 @@ const methods = {
   setup: NodePath_context.setup,
   setKey: NodePath_context.setKey,
   requeue: NodePath_context.requeue,
+  requeueComputedKeyAndDecorators:
+    NodePath_context.requeueComputedKeyAndDecorators,
 
   // NodePath_removal
   remove: NodePath_removal.remove,
@@ -287,6 +291,7 @@ const methods = {
   getAllNextSiblings: NodePath_family.getAllNextSiblings,
   getAllPrevSiblings: NodePath_family.getAllPrevSiblings,
   get: NodePath_family.get,
+  getAssignmentIdentifiers: NodePath_family.getAssignmentIdentifiers,
   getBindingIdentifiers: NodePath_family.getBindingIdentifiers,
   getOuterBindingIdentifiers: NodePath_family.getOuterBindingIdentifiers,
   getBindingIdentifierPaths: NodePath_family.getBindingIdentifierPaths,

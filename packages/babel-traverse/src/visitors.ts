@@ -10,6 +10,7 @@ import {
 } from "@babel/types";
 import type { ExplodedVisitor, NodePath, Visitor } from "./index.ts";
 import type { ExplVisitNode, VisitNodeFunction, VisitPhase } from "./types.ts";
+import { requeueComputedKeyAndDecorators } from "./path/context.ts";
 
 type VIRTUAL_TYPES = keyof typeof virtualTypes;
 function isVirtualType(type: string): type is VIRTUAL_TYPES {
@@ -354,10 +355,8 @@ function wrapCheck(nodeType: VIRTUAL_TYPES, fn: Function) {
   return newFn;
 }
 
-function shouldIgnoreKey(
-  key: string,
-): key is
-  | `_${string}`
+function shouldIgnoreKey(key: string): key is
+  | `_${string}` // ` // Comment to fix syntax highlighting in vscode
   | "enter"
   | "exit"
   | "shouldSkip"
@@ -396,4 +395,44 @@ function mergePair(dest: any, src: any) {
     if (!src[phase]) continue;
     dest[phase] = [].concat(dest[phase] || [], src[phase]);
   }
+}
+
+// environmentVisitor should be used when traversing the whole class and not for specific class elements/methods.
+// For perf reasons, the environmentVisitor might be traversed with `{ noScope: true }`, which means `path.scope` is undefined.
+// Avoid using `path.scope` here
+const _environmentVisitor: Visitor = {
+  FunctionParent(path) {
+    // arrows are not skipped because they inherit the context.
+    if (path.isArrowFunctionExpression()) return;
+
+    path.skip();
+    if (path.isMethod()) {
+      if (
+        !process.env.BABEL_8_BREAKING &&
+        !path.requeueComputedKeyAndDecorators
+      ) {
+        // See https://github.com/babel/babel/issues/16694
+        requeueComputedKeyAndDecorators.call(path);
+      } else {
+        path.requeueComputedKeyAndDecorators();
+      }
+    }
+  },
+  Property(path) {
+    if (path.isObjectProperty()) return;
+    path.skip();
+    if (
+      !process.env.BABEL_8_BREAKING &&
+      !path.requeueComputedKeyAndDecorators
+    ) {
+      // See https://github.com/babel/babel/issues/16694
+      requeueComputedKeyAndDecorators.call(path);
+    } else {
+      path.requeueComputedKeyAndDecorators();
+    }
+  },
+};
+
+export function environmentVisitor<S>(visitor: Visitor<S>): Visitor<S> {
+  return merge([_environmentVisitor, visitor]);
 }

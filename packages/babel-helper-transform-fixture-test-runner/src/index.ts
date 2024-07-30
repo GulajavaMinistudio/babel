@@ -504,7 +504,7 @@ function normalizeOutput(
     // the output logs so that we don't have to duplicate all the debug fixtures for
     // the two different Babel versions.
     if (normalizePresetEnvDebug) {
-      result = result.replace(/(\s+)proposal-/gm, "$1transform-");
+      result = result.replace(/(\s+)proposal-/g, "$1transform-");
     }
 
     // For some reasons, in older Node.js versions some symlinks are not properly
@@ -738,7 +738,6 @@ const assertTest = function (
       throw new Error("stdout:\n" + stdout);
     }
   } catch (e) {
-    console.log(JSON.stringify(opts.stdout), JSON.stringify(stdout));
     if (!process.env.OVERWRITE) throw e;
     console.log(`Updated test file: ${opts.stdoutPath}`);
     outputFileSync(opts.stdoutPath, stdout + "\n");

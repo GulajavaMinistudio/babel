@@ -1,6 +1,6 @@
 {
   "name": "@babel/eslint-plugin",
-  "version": "7.24.7",
+  "version": "7.25.1",
   "description": "Companion rules for @babel/eslint-parser",
   "main": "./lib/index.cjs",
   "type": "module",
@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "clone-deep": "^4.0.1",
-    "eslint": "^9.0.0"
+    "eslint": "^9.7.0"
   },
   "conditions": {
     "BABEL_8_BREAKING": [

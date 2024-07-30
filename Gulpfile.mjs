@@ -734,6 +734,7 @@ if (bool(process.env.BABEL_8_BREAKING)) {
     "packages/babel-plugin-bugfix-v8-spread-parameters-in-optional-chaining",
     "packages/babel-plugin-bugfix-v8-static-class-fields-redefine-readonly",
     "packages/babel-plugin-bugfix-safari-id-destructuring-collision-in-function-expression",
+    "packages/babel-plugin-bugfix-safari-class-field-initializer-scope",
   ].map(src => ({
     src,
     format: USE_ESM ? "esm" : "cjs",
@@ -836,7 +837,7 @@ gulp.task("build-vendor", async () => {
       {
         // Remove the node: prefix from imports, so that it works in old Node.js version
         // TODO(Babel 8): This can be removed.
-        transform: code => code.replace(/(?<=from ["'"])node:/g, ""),
+        transform: code => code.replace(/(?<=from ["'])node:/g, ""),
       },
     ],
   });

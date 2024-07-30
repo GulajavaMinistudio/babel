@@ -47,17 +47,8 @@
       "@babel/helper-create-regexp-features-plugin": [
         "./packages/babel-helper-create-regexp-features-plugin/src"
       ],
-      "@babel/helper-environment-visitor": [
-        "./packages/babel-helper-environment-visitor/src"
-      ],
       "@babel/helper-fixtures": [
         "./packages/babel-helper-fixtures/src"
-      ],
-      "@babel/helper-function-name": [
-        "./packages/babel-helper-function-name/src"
-      ],
-      "@babel/helper-hoist-variables": [
-        "./packages/babel-helper-hoist-variables/src"
       ],
       "@babel/helper-import-to-platform-api": [
         "./packages/babel-helper-import-to-platform-api/src"
@@ -92,9 +83,6 @@
       "@babel/helper-skip-transparent-expression-wrappers": [
         "./packages/babel-helper-skip-transparent-expression-wrappers/src"
       ],
-      "@babel/helper-split-export-declaration": [
-        "./packages/babel-helper-split-export-declaration/src"
-      ],
       "@babel/helper-string-parser": [
         "./packages/babel-helper-string-parser/src"
       ],
@@ -124,6 +112,9 @@
       ],
       "@babel/plugin-bugfix-firefox-class-in-computed-class-key": [
         "./packages/babel-plugin-bugfix-firefox-class-in-computed-class-key/src"
+      ],
+      "@babel/plugin-bugfix-safari-class-field-initializer-scope": [
+        "./packages/babel-plugin-bugfix-safari-class-field-initializer-scope/src"
       ],
       "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression": [
         "./packages/babel-plugin-bugfix-safari-id-destructuring-collision-in-function-expression/src"

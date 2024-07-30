@@ -1,5 +1,5 @@
 FLOW_COMMIT = 105ad30f566f401db9cafcb49cd2831fb29e87c5
-TEST262_COMMIT = 880f8a5ba64d4e9df02e4c961e5abb9dec380f2b
+TEST262_COMMIT = 242f6f98f0f86c0a3276929b4a450438526057cb
 TYPESCRIPT_COMMIT = d87d0adcd30ac285393bf3bfbbb4d94d50c4f3c9
 
 SOURCES = packages codemods eslint
@@ -15,6 +15,9 @@ MAKEJS := node Makefile.js
 
 
 .PHONY: build build-dist watch lint fix clean test-clean test-only test test-ci publish bootstrap use-esm use-cjs
+
+Makefile.js: Makefile.source.mjs yarn.lock
+	$(NODE) ./scripts/pack-script.js
 
 build:
 	$(MAKEJS) build

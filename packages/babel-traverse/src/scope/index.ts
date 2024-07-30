@@ -7,6 +7,7 @@ import type { BindingKind } from "./binding.ts";
 import globals from "globals";
 import {
   NOT_LOCAL_BINDING,
+  assignmentExpression,
   callExpression,
   cloneNode,
   getBindingIdentifiers,
@@ -38,6 +39,7 @@ import {
   isThisExpression,
   isUnaryExpression,
   isVariableDeclaration,
+  expressionStatement,
   matchesPattern,
   memberExpression,
   numericLiteral,
@@ -52,6 +54,7 @@ import {
   isPrivateName,
   isExportDeclaration,
   buildUndefinedNode,
+  sequenceExpression,
 } from "@babel/types";
 import * as t from "@babel/types";
 import { scope as scopeCache } from "../cache.ts";
@@ -499,9 +502,7 @@ class Scope {
    */
 
   generateUid(name: string = "temp"): string {
-    name = toIdentifier(name)
-      .replace(/^_+/, "")
-      .replace(/[0-9]+$/g, "");
+    name = toIdentifier(name).replace(/^_+/, "").replace(/\d+$/g, "");
 
     let uid;
     let i = 1;
@@ -793,7 +794,7 @@ class Scope {
   }
 
   registerConstantViolation(path: NodePath) {
-    const ids = path.getBindingIdentifiers();
+    const ids = path.getAssignmentIdentifiers();
     for (const name of Object.keys(ids)) {
       this.getBinding(name)?.reassign(path);
     }
@@ -1045,7 +1046,7 @@ class Scope {
     // register assignments
     for (const path of state.assignments) {
       // register undeclared bindings as globals
-      const ids = path.getBindingIdentifiers();
+      const ids = path.getAssignmentIdentifiers();
       for (const name of Object.keys(ids)) {
         if (path.scope.getBinding(name)) continue;
         programParent.addGlobal(ids[name]);
@@ -1374,6 +1375,63 @@ class Scope {
         scope.uids[name] = false;
       }
     } while ((scope = scope.parent));
+  }
+
+  /**
+   * Hoist all the `var` variable to the beginning of the function/program
+   * scope where their binding will be actually defined. For exmaple,
+   *     { var x = 2 }
+   * will be transformed to
+   *     var x; { x = 2 }
+   *
+   * @param emit A custom function to emit `var` declarations, for example to
+   *   emit them in a different scope.
+   */
+  hoistVariables(
+    emit: (id: t.Identifier, hasInit: boolean) => void = id =>
+      this.push({ id }),
+  ) {
+    this.crawl();
+
+    const seen = new Set();
+    for (const name of Object.keys(this.bindings)) {
+      const binding = this.bindings[name];
+      if (!binding) continue;
+      const { path } = binding;
+      if (!path.isVariableDeclarator()) continue;
+      const { parent, parentPath } = path;
+
+      if (parent.kind !== "var" || seen.has(parent)) continue;
+      seen.add(path.parent);
+
+      let firstId;
+      const init = [];
+      for (const decl of parent.declarations) {
+        firstId ??= decl.id;
+        if (decl.init) {
+          init.push(assignmentExpression("=", decl.id, decl.init));
+        }
+
+        const ids = Object.keys(getBindingIdentifiers(decl, false, true, true));
+        for (const name of ids) {
+          emit(identifier(name), decl.init != null);
+        }
+      }
+
+      // for (var i in test)
+      if (parentPath.parentPath.isFor({ left: parent })) {
+        parentPath.replaceWith(firstId);
+      } else if (init.length === 0) {
+        parentPath.remove();
+      } else {
+        const expr = init.length === 1 ? init[0] : sequenceExpression(init);
+        if (parentPath.parentPath.isForStatement({ init: parent })) {
+          parentPath.replaceWith(expr);
+        } else {
+          parentPath.replaceWith(expressionStatement(expr));
+        }
+      }
+    }
   }
 }
 
