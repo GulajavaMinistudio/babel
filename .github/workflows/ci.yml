@@ -19,7 +19,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: 'Check or update Yarn cache (fix w/ "yarn install")'
@@ -40,7 +40,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: 'Check for unmet constraints (fix w/ "yarn constraints --fix")'
@@ -69,15 +69,13 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Generate coverage report
         run: |
           make -j test-ci-coverage
           yarn test:esm
-        env:
-          BABEL_CLI_FLAKY_TESTS: true
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
 
@@ -85,13 +83,17 @@ jobs:
     name: Test ESM version
     needs: prepare-yarn-cache
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [23, 22]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: ${{matrix.node-version}}
           check-latest: true
           cache: "yarn"
       - name: Use ESM and build
@@ -102,8 +104,8 @@ jobs:
         run: yarn jest --ci
         env:
           BABEL_ENV: test
+          NODE_OPTIONS: ${{matrix.node-version == '23' && '--disable-warning=ExperimentalWarning' || ''}}
           USE_ESM: true
-          BABEL_CLI_FLAKY_TESTS: trues
 
   build:
     name: Build Babel Artifacts
@@ -118,7 +120,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Build babel artifacts
@@ -134,6 +136,9 @@ jobs:
       - name: Generate readmes
         run: |
           make generate-readme
+      - name: Generate .npmignore
+        run: |
+          node scripts/generators/npm-ignore.js
       - name: Cleanup fixtures
         run: |
           node scripts/cleanup-fixtures.js
@@ -161,7 +166,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Build babel artifacts
@@ -186,7 +191,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -209,14 +214,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 18, 16, 14, 12, 10, 8, 6]
+        node-version: [23, 20, 18, 16, 14, 12, 10, 8, 6]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Use Node.js latest # Run yarn on latest node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -257,15 +262,15 @@ jobs:
       - name: Test on node.js ${{ matrix.node-version }}
         # Todo(Babel 8): Jest execution path is hardcoded because Yarn 2 does not support node 6
         run: |
-          BABEL_ENV=test node --max-old-space-size=4096 ./node_modules/.bin/jest --ci
+          node ./node_modules/.bin/jest --ci
         env:
-          BABEL_CLI_FLAKY_TESTS: true
+          BABEL_ENV: test
           TEST_FUZZ: "${{ (matrix.node-version == '6' || matrix.node-version == '8' || matrix.node-version == '10') && 'false' || 'true' }}"
       - name: Use Node.js latest # For `yarn version` in post actions of the first actions/setup-node
         if: matrix.node-version == '6' || matrix.node-version == '8' || matrix.node-version == '10'
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
 
   build-babel8:
     name: Build Babel 8 Artifacts
@@ -280,7 +285,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Use ESM
@@ -336,13 +341,11 @@ jobs:
         env:
           BABEL_ENV: test
           BABEL_8_BREAKING: true
-          BABEL_CLI_FLAKY_TESTS: true
       - name: Test ESM
         run: yarn test:esm
         env:
           BABEL_ENV: test
           BABEL_8_BREAKING: true
-          BABEL_CLI_FLAKY_TESTS: true
 
   test-windows-mac:
     name: Test on
@@ -358,7 +361,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -372,7 +375,6 @@ jobs:
         run: yarn jest --ci
         env:
           BABEL_ENV: test
-          BABEL_CLI_FLAKY_TESTS: true
 
   external-parser-tests:
     name: Third-party Parser Tests
@@ -384,7 +386,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -413,7 +415,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       # See https://github.com/babel/babel/pull/12906
@@ -458,7 +460,7 @@ jobs:
       - name: Use Node.js 12.0
         uses: actions/setup-node@v4
         with:
-          node-version: "12.0" # quoted, otherwise it's just 13
+          node-version: "12.0" # quoted, otherwise it's just 12
       - name: Test Node.js 12.0
         run: node test/runtime-integration/node.cjs
       - name: Use Node.js 12.17
@@ -520,7 +522,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -545,7 +547,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
           cache: "yarn"
       - name: Install
@@ -570,7 +572,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
       - name: Checkout test runner
         uses: actions/checkout@v4
@@ -607,7 +609,7 @@ jobs:
       - name: Use Node.js latest
         uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 22
           check-latest: true
       - name: Install
         run: yarn install

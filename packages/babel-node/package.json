@@ -1,6 +1,6 @@
 {
   "name": "@babel/node",
-  "version": "7.25.7",
+  "version": "7.25.9",
   "description": "Babel command line",
   "author": "The Babel Team (https://babel.dev/team)",
   "homepage": "https://babel.dev/docs/en/next/babel-node",
@@ -37,6 +37,7 @@
     "@babel/core": "workspace:^",
     "@babel/helper-transform-fixture-test-runner": "workspace:^",
     "@babel/preset-env": "workspace:^",
+    "@babel/preset-react": "workspace:^",
     "@babel/runtime": "workspace:^",
     "@types/v8flags": "^3.1.1"
   },

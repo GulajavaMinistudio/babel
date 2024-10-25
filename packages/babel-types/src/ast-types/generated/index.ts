@@ -1185,12 +1185,18 @@ export interface DeclareExportDeclaration extends BaseNode {
   declaration?: Flow | null;
   specifiers?: Array<ExportSpecifier | ExportNamespaceSpecifier> | null;
   source?: StringLiteral | null;
+  attributes?: Array<ImportAttribute> | null;
+  /** @deprecated */
+  assertions?: Array<ImportAttribute> | null;
   default?: boolean | null;
 }
 
 export interface DeclareExportAllDeclaration extends BaseNode {
   type: "DeclareExportAllDeclaration";
   source: StringLiteral;
+  attributes?: Array<ImportAttribute> | null;
+  /** @deprecated */
+  assertions?: Array<ImportAttribute> | null;
   exportKind?: "type" | "value" | null;
 }
 
@@ -1598,6 +1604,9 @@ export interface Placeholder extends BaseNode {
     | "ClassBody"
     | "Pattern";
   name: Identifier;
+  decorators?: Array<Decorator> | null;
+  optional?: boolean | null;
+  typeAnnotation?: TypeAnnotation | TSTypeAnnotation | Noop | null;
 }
 
 export interface V8IntrinsicIdentifier extends BaseNode {
@@ -2018,6 +2027,7 @@ export interface TSModuleDeclaration extends BaseNode {
   body: TSModuleBlock | TSModuleDeclaration;
   declare?: boolean | null;
   global?: boolean | null;
+  kind: "global" | "module" | "namespace";
 }
 
 export interface TSModuleBlock extends BaseNode {
@@ -4041,6 +4051,7 @@ export interface ParentMaps {
     | ObjectMethod
     | ObjectPattern
     | ObjectProperty
+    | Placeholder
     | RestElement
     | TSDeclareMethod
     | TSParameterProperty;
@@ -4688,6 +4699,8 @@ export interface ParentMaps {
     | WithStatement
     | YieldExpression;
   ImportAttribute:
+    | DeclareExportAllDeclaration
+    | DeclareExportDeclaration
     | ExportAllDeclaration
     | ExportNamedDeclaration
     | ImportDeclaration;
@@ -5429,6 +5442,7 @@ export interface ParentMaps {
     | Identifier
     | ObjectMethod
     | ObjectPattern
+    | Placeholder
     | RestElement
     | TSDeclareFunction
     | TSDeclareMethod;
@@ -7725,6 +7739,7 @@ export interface ParentMaps {
     | Identifier
     | ObjectMethod
     | ObjectPattern
+    | Placeholder
     | RestElement
     | TSCallSignatureDeclaration
     | TSConstructSignatureDeclaration
@@ -8469,6 +8484,7 @@ export interface ParentMaps {
     | Identifier
     | ObjectMethod
     | ObjectPattern
+    | Placeholder
     | RestElement
     | TypeCastExpression
     | TypeParameter;

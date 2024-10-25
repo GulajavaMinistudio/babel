@@ -1,6 +1,6 @@
 {
   "name": "@babel/plugin-proposal-destructuring-private",
-  "version": "7.25.7",
+  "version": "7.25.9",
   "description": "Transform destructuring private proposal",
   "repository": {
     "type": "git",
@@ -27,6 +27,8 @@
     "@babel/core": "workspace:^",
     "@babel/helper-plugin-test-runner": "workspace:^",
     "@babel/plugin-syntax-decimal": "condition:BABEL_8_BREAKING ? : ^7.24.7",
+    "@babel/plugin-transform-class-properties": "workspace:^",
+    "@babel/plugin-transform-class-static-block": "workspace:^",
     "@babel/traverse": "workspace:^",
     "@babel/types": "workspace:^"
   },
